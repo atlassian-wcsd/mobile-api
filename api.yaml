@@ -1,91 +1,139 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: Swagger Petstore
+  title: Mobile Handwriting Signature API
+  description: API for managing mobile handwriting signatures
   license:
     name: MIT
 servers:
-  - url: http://petstore.swagger.io/v1
+  - url: http://api.signatures.com/v1
 paths:
-  /pets:
-    get:
-      summary: List all pets
-      operationId: listPets
-      tags:
-        - pets
-      parameters:
-        - name: limit
-          in: query
-          description: How many items to return at one time (max 100)
-          required: false
-          schema:
-            type: integer
-            maximum: 100
-            format: int32
-      responses:
-        '200':
-          description: A paged array of pets
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
-          content:
-            application/json:    
-              schema:
-                $ref: "#/components/schemas/Pets"
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+  /signatures:
     post:
-      summary: Create a pet
-      operationId: createPets
+      summary: Create a new handwriting signature
+      operationId: createSignature
       tags:
-        - pets
+        - signatures
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
-        required: true
+              $ref: '#/components/schemas/SignatureInput'
       responses:
         '201':
-          description: Null response
+          description: Signature created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Signature"
         default:
           description: unexpected error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /pets/{petId}:
     get:
-      summary: Info for a specific pet
-      operationId: showPetById
+      summary: List all signatures for a user
+      operationId: listSignatures
       tags:
-        - pets
+        - signatures
       parameters:
-        - name: petId
-          in: path
+        - name: userId
+          in: query
+          description: ID of the user whose signatures to retrieve
           required: true
-          description: The id of the pet to retrieve
           schema:
             type: string
-        - name: petAlias
-          in: path
+        - name: limit
+          in: query
+          description: Maximum number of signatures to return
           required: false
-          description: The alias of the pet to retrieve
+          schema:
+            type: integer
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: List of signatures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Signature"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /signatures/{signatureId}:
+    get:
+      summary: Get a specific signature
+      operationId: getSignature
+      tags:
+        - signatures
+      parameters:
+        - name: signatureId
+          in: path
+          required: true
+          description: The ID of the signature to retrieve
           schema:
             type: string
       responses:
         '200':
-          description: Expected response to a valid request
+          description: The requested signature
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Pet"
+                $ref: "#/components/schemas/Signature"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete a signature
+      operationId: deleteSignature
+      tags:
+        - signatures
+      parameters:
+        - name: signatureId
+          in: path
+          required: true
+          description: The ID of the signature to delete
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Signature successfully deleted
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /signatures/verify:
+    post:
+      summary: Verify a signature
+      operationId: verifySignature
+      tags:
+        - signatures
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignatureVerificationRequest'
+      responses:
+        '200':
+          description: Signature verification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignatureVerificationResult"
         default:
           description: unexpected error
           content:
@@ -94,24 +142,100 @@ paths:
                 $ref: "#/components/schemas/Error"
 components:
   schemas:
-    Pet:
+    SignatureInput:
+      type: object
+      required:
+        - userId
+        - signatureData
+      properties:
+        userId:
+          type: string
+          description: ID of the user creating the signature
+        signatureData:
+          type: string
+          description: Base64 encoded signature image data
+        metadata:
+          type: object
+          properties:
+            deviceType:
+              type: string
+              description: Type of device used for signature capture
+            pressureData:
+              type: array
+              description: Pressure data points captured during signature
+              items:
+                type: number
+            timestamp:
+              type: string
+              format: date-time
+    Signature:
       type: object
       required:
         - id
-        - name
+        - userId
+        - signatureData
+        - createdAt
       properties:
         id:
-          type: integer
-          format: int64
-        name:
           type: string
-        tag:
+        userId:
           type: string
-    Pets:
-      type: array
-      maxItems: 100
-      items:
-        $ref: "#/components/schemas/Pet"
+        signatureData:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/SignatureMetadata"
+        createdAt:
+          type: string
+          format: date-time
+        lastUsed:
+          type: string
+          format: date-time
+    SignatureMetadata:
+      type: object
+      properties:
+        deviceType:
+          type: string
+        pressureData:
+          type: array
+          items:
+            type: number
+        timestamp:
+          type: string
+          format: date-time
+    SignatureVerificationRequest:
+      type: object
+      required:
+        - signatureId
+        - documentHash
+      properties:
+        signatureId:
+          type: string
+        documentHash:
+          type: string
+          description: Hash of the document being verified
+    SignatureVerificationResult:
+      type: object
+      required:
+        - isValid
+        - verificationTimestamp
+      properties:
+        isValid:
+          type: boolean
+        verificationTimestamp:
+          type: string
+          format: date-time
+        details:
+          type: object
+          properties:
+            confidenceScore:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            matchedFeatures:
+              type: array
+              items:
+                type: string
     Error:
       type: object
       required:
