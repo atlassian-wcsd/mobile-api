@@ -1,117 +1,164 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: Swagger Petstore
+  title: Mobile User Registration API
+  description: API for mobile user registration and email verification
   license:
     name: MIT
 servers:
-  - url: http://petstore.swagger.io/v1
+  - url: https://api.example.com/v1
+    description: Production server
 paths:
-  /pets:
-    get:
-      summary: List all pets
-      operationId: listPets
-      tags:
-        - pets
-      parameters:
-        - name: limit
-          in: query
-          description: How many items to return at one time (max 100)
-          required: false
-          schema:
-            type: integer
-            maximum: 100
-            format: int32
-      responses:
-        '200':
-          description: A paged array of pets
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
-          content:
-            application/json:    
-              schema:
-                $ref: "#/components/schemas/Pets"
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+  /users/register:
     post:
-      summary: Create a pet
-      operationId: createPets
+      summary: Register a new user
+      operationId: registerUser
       tags:
-        - pets
+        - users
+      security:
+        - {}
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
-        required: true
+              $ref: '#/components/schemas/UserRegistration'
       responses:
         '201':
-          description: Null response
-        default:
-          description: unexpected error
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegistrationResponse"
+        '400':
+          description: Invalid input
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /pets/{petId}:
-    get:
-      summary: Info for a specific pet
-      operationId: showPetById
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /users/verify-email:
+    post:
+      summary: Verify user email
+      operationId: verifyEmail
       tags:
-        - pets
-      parameters:
-        - name: petId
-          in: path
-          required: true
-          description: The id of the pet to retrieve
-          schema:
-            type: string
-        - name: petAlias
-          in: path
-          required: false
-          description: The alias of the pet to retrieve
-          schema:
-            type: string
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailVerification'
       responses:
         '200':
-          description: Expected response to a valid request
+          description: Email successfully verified
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Pet"
-        default:
-          description: unexpected error
+                $ref: "#/components/schemas/VerificationResponse"
+        '400':
+          description: Invalid verification code
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        '404':
+          description: Verification code not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   schemas:
-    Pet:
+    UserRegistration:
       type: object
       required:
-        - id
         - name
+        - email
+        - password
+        - phoneNumber
+        - captchaToken
       properties:
-        id:
-          type: integer
-          format: int64
         name:
           type: string
-        tag:
+          minLength: 2
+          maxLength: 100
+          description: User's full name
+        email:
           type: string
-    Pets:
-      type: array
-      maxItems: 100
-      items:
-        $ref: "#/components/schemas/Pet"
+          format: email
+          description: User's email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User's password (must contain at least 8 characters, including uppercase, lowercase, numbers)
+        phoneNumber:
+          type: string
+          pattern: '^\+?[1-9]\d{1,14}$'
+          description: User's phone number in E.164 format
+        captchaToken:
+          type: string
+          description: CAPTCHA verification token
+          
+    EmailVerification:
+      type: object
+      required:
+        - email
+        - verificationCode
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+        verificationCode:
+          type: string
+          description: Verification code sent to user's email
+          
+    RegistrationResponse:
+      type: object
+      required:
+        - userId
+        - message
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Unique identifier for the registered user
+        message:
+          type: string
+          description: Success message
+          example: "Registration successful. Please check your email for verification."
+          
+    VerificationResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "Email verification successful"
+          
     Error:
       type: object
       required:
@@ -123,3 +170,15 @@ components:
           format: int32
         message:
           type: string
+          description: Error message
+        details:
+          type: array
+          items:
+            type: string
+          description: Detailed error messages
+          
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
