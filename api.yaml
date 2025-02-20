@@ -76,7 +76,13 @@ paths:
         - name: petAlias
           in: path
           required: false
-          description: The alias of the pet to retrieve
+          description: The technical alias of the pet to retrieve
+          schema:
+            type: string
+        - name: petNickname
+          in: path
+          required: false
+          description: The nickname of the pet to retrieve
           schema:
             type: string
       responses:
