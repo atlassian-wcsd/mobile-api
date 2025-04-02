@@ -1,5 +1,5 @@
 /**
- * Interface representing a handwritten signature
+ * Interface representing a mobile handwritten signature
  */
 export interface Signature {
   /**
@@ -55,5 +55,54 @@ export interface Signature {
      * Pressure sensitivity data points if available
      */
     pressureData?: number[];
+
+    /**
+     * Input method used (e.g., "finger", "stylus")
+     */
+    inputMethod: string;
+
+    /**
+     * Screen orientation when signature was created
+     */
+    screenOrientation: 'portrait' | 'landscape';
+
+    /**
+     * Device screen dimensions in pixels
+     */
+    screenDimensions: {
+      width: number;
+      height: number;
+    };
+
+    /**
+     * Coordinates of signature strokes
+     */
+    strokeData?: Array<{
+      points: Array<{
+        x: number;
+        y: number;
+        timestamp: number;
+        pressure?: number;
+      }>;
+    }>;
+
+    /**
+     * Mobile-specific device information
+     */
+    deviceInfo?: {
+      model: string;
+      os: string;
+      osVersion: string;
+      screenDPI: number;
+    };
+
+    /**
+     * Geolocation data if available and permitted
+     */
+    location?: {
+      latitude: number;
+      longitude: number;
+      accuracy: number;
+    };
   };
 }
