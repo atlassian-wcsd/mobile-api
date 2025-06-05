@@ -1,4 +1,18 @@
 deployments:
+  environmentMapping:
+    development:
+      - "dev*"
+    testing:
+      - "test*"
+    staging:
+      - "stg*"
+      - "stg-us-east"
+      - "stg-us-west"
+    production:
+      - "prod*"
+      - "prod-ca-central"
+      - "prod-us-east"
+      - "prod-us-west"
   deploymentGating:
     enabled: true # to enable the feature
     retry: 50 # run poll action 50 times

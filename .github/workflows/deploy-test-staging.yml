@@ -22,8 +22,31 @@ jobs:
     outputs:
       env-name: ${{ steps.env-name.outputs.environment }}
     steps:
+      - uses: chrnorm/deployment-action@v2
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: '${{ secrets.WMARUSIAK_PAT_MACOS_LAPTOP_2025 }}'
+          environment: stg-us-west
+
       - name: Deploy us-west-1
         run: echo "Deploy us-west-1"
+
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ secrets.WMARUSIAK_PAT_MACOS_LAPTOP_2025 }}'
+          state: 'success'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ secrets.WMARUSIAK_PAT_MACOS_LAPTOP_2025 }}'
+          state: 'failure'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
 
   integration-test-us-west-1:
     runs-on: ubuntu-latest
