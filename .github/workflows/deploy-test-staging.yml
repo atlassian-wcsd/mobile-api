@@ -4,6 +4,7 @@ on:
     branches:
       - '*'
       - '!mainline'
+  workflow_dispatch:
 
 jobs:
   run-unit-tests:
