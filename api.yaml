@@ -1,12 +1,112 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: Swagger Petstore
+  title: Mobile Authentication API
+  description: API for mobile key-based authentication
   license:
     name: MIT
 servers:
-  - url: http://petstore.swagger.io/v1
+  - url: https://api.example.com/v1
 paths:
+  /auth:
+    post:
+      summary: Authenticate using a key
+      operationId: authenticateWithKey
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/key:
+    post:
+      summary: Create a new authentication key
+      operationId: createAuthKey
+      tags:
+        - auth
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Authentication key created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthKey'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Revoke an authentication key
+      operationId: revokeAuthKey
+      tags:
+        - auth
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: keyId
+          in: query
+          required: true
+          description: The ID of the key to revoke
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Key successfully revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /pets:
     get:
       summary: List all pets
@@ -93,7 +193,71 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
+    AuthRequest:
+      type: object
+      required:
+        - keyId
+        - keyValue
+      properties:
+        keyId:
+          type: string
+          description: The unique identifier of the authentication key
+        keyValue:
+          type: string
+          description: The secret value of the authentication key
+
+    AuthResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Whether the authentication was successful
+        token:
+          type: string
+          description: JWT token for authenticated session
+        error:
+          type: string
+          description: Error message if authentication failed
+        userId:
+          type: string
+          description: ID of the authenticated user
+
+    AuthKey:
+      type: object
+      required:
+        - keyId
+        - keyValue
+        - createdAt
+        - status
+      properties:
+        keyId:
+          type: string
+          description: Unique identifier for the key
+        keyValue:
+          type: string
+          description: Secret value used for authentication
+        createdAt:
+          type: string
+          format: date-time
+          description: When the key was created
+        expiresAt:
+          type: string
+          format: date-time
+          description: When the key expires (if applicable)
+        status:
+          type: string
+          enum: [active, revoked, expired]
+          description: Current status of the key
+
     Pet:
       type: object
       required:
