@@ -5,6 +5,79 @@ import { Signature } from '../models/Signature';
  */
 export class SignatureService {
   private signatures: Map<string, Signature> = new Map();
+  private authenticatedDevices: Map<string, { authToken: string; expiration: Date }> = new Map();
+
+  /**
+   * Authenticate a mobile device
+   * @param deviceId Unique identifier for the device
+   * @param deviceFingerprint Device information for verification
+   * @returns Authentication token if successful, null if authentication fails
+   */
+  public authenticateDevice(
+    deviceId: string,
+    deviceFingerprint: {
+      platform: string;
+      osVersion: string;
+      appVersion: string;
+      deviceModel: string;
+    }
+  ): { authToken: string; expiresIn: number } | null {
+    // Validate device fingerprint
+    if (!this.validateDeviceFingerprint(deviceFingerprint)) {
+      return null;
+    }
+
+    // Generate authentication token
+    const authToken = this.generateAuthToken();
+    const expiresIn = 24 * 60 * 60; // 24 hours in seconds
+    const expiration = new Date(Date.now() + expiresIn * 1000);
+
+    // Store device authentication
+    this.authenticatedDevices.set(deviceId, { authToken, expiration });
+
+    return { authToken, expiresIn };
+  }
+
+  /**
+   * Validate a device's authentication token
+   * @param deviceId Device identifier
+   * @param authToken Authentication token to validate
+   * @returns true if the token is valid, false otherwise
+   */
+  public validateDeviceAuth(deviceId: string, authToken: string): boolean {
+    const deviceAuth = this.authenticatedDevices.get(deviceId);
+    if (!deviceAuth) return false;
+
+    return deviceAuth.authToken === authToken && deviceAuth.expiration > new Date();
+  }
+
+  /**
+   * Validate device fingerprint information
+   * @param fingerprint Device fingerprint data
+   * @returns true if the fingerprint is valid, false otherwise
+   */
+  private validateDeviceFingerprint(fingerprint: {
+    platform: string;
+    osVersion: string;
+    appVersion: string;
+    deviceModel: string;
+  }): boolean {
+    // Implement device fingerprint validation logic
+    return (
+      !!fingerprint.platform &&
+      !!fingerprint.osVersion &&
+      !!fingerprint.appVersion &&
+      !!fingerprint.deviceModel
+    );
+  }
+
+  /**
+   * Generate a secure authentication token
+   * @returns A unique authentication token
+   */
+  private generateAuthToken(): string {
+    return 'auth_' + Date.now() + '_' + crypto.randomUUID();
+  }
 
   /**
    * Create a new handwriting signature
@@ -21,9 +94,21 @@ export class SignatureService {
     width: number,
     height: number,
     userId: string,
-    metadata: { device: string; platform: string; pressureData?: number[] },
+    deviceInfo: {
+      deviceId: string;
+      device: string;
+      platform: string;
+      verificationStatus: 'VERIFIED' | 'UNVERIFIED' | 'BLOCKED';
+      authToken?: string;
+      pressureData?: number[];
+    },
     label?: string
   ): Signature {
+    // Validate device authentication before creating signature
+    if (!deviceInfo.authToken || !this.validateDeviceAuth(deviceInfo.deviceId, deviceInfo.authToken)) {
+      throw new Error('Device authentication required');
+    }
+
     const signature: Signature = {
       id: this.generateSignatureId(),
       imageData,
@@ -31,7 +116,10 @@ export class SignatureService {
       height,
       createdAt: new Date(),
       userId,
-      metadata,
+      deviceInfo: {
+        ...deviceInfo,
+        verificationStatus: this.getDeviceVerificationStatus(deviceInfo.deviceId)
+      },
       label
     };
 
@@ -105,6 +193,25 @@ export class SignatureService {
    * @returns A unique string ID
    */
   private generateSignatureId(): string {
-    return 'sig_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'sig_' + Date.now() + '_' + crypto.randomUUID();
+  }
+
+  /**
+   * Get the verification status for a device
+   * @param deviceId Device identifier
+   * @returns The verification status of the device
+   */
+  private getDeviceVerificationStatus(deviceId: string): 'VERIFIED' | 'UNVERIFIED' | 'BLOCKED' {
+    const deviceAuth = this.authenticatedDevices.get(deviceId);
+    if (!deviceAuth) return 'UNVERIFIED';
+    
+    // Check if the device's authentication is expired
+    if (deviceAuth.expiration < new Date()) {
+      return 'UNVERIFIED';
+    }
+
+    // In a real implementation, additional checks would be performed here
+    // such as checking against a blocklist, verifying device integrity, etc.
+    return 'VERIFIED';
   }
 }

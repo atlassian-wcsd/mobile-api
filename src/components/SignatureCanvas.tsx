@@ -7,6 +7,8 @@ interface SignatureCanvasProps {
   onSave?: (signature: Signature) => void;
   onClear?: () => void;
   className?: string;
+  deviceId: string;
+  authToken: string;
 }
 
 export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
@@ -15,6 +17,8 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   onSave,
   onClear,
   className,
+  deviceId,
+  authToken,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -92,9 +96,12 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
       height,
       createdAt: new Date(),
       userId: 'current-user-id', // This should be replaced with actual user ID
-      metadata: {
+      deviceInfo: {
+        deviceId,
         device: 'browser',
         platform: navigator.userAgent,
+        verificationStatus: 'UNVERIFIED', // Will be updated by the service
+        authToken,
         pressureData: [], // Could be implemented with pointer events
       },
     };

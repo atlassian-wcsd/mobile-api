@@ -1,41 +1,116 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: Swagger Petstore
+  title: Signature Authentication API
   license:
     name: MIT
 servers:
-  - url: http://petstore.swagger.io/v1
+  - url: https://api.signatures.example.com/v1
 paths:
-  /pets:
-    get:
-      summary: List all pets
-      operationId: listPets
+  /auth/mobile:
+    post:
+      summary: Authenticate mobile device
+      operationId: authenticateMobileDevice
       tags:
-        - pets
-      parameters:
-        - name: limit
-          in: query
-          description: How many items to return at one time (max 100)
-          required: false
-          schema:
-            type: integer
-            maximum: 100
-            format: int32
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - deviceId
+                - deviceFingerprint
+              properties:
+                deviceId:
+                  type: string
+                  description: Unique identifier for the mobile device
+                deviceFingerprint:
+                  type: object
+                  properties:
+                    platform:
+                      type: string
+                    osVersion:
+                      type: string
+                    appVersion:
+                      type: string
+                    deviceModel:
+                      type: string
       responses:
         '200':
-          description: A paged array of pets
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
+          description: Authentication successful
           content:
-            application/json:    
+            application/json:
               schema:
-                $ref: "#/components/schemas/Pets"
-        default:
-          description: unexpected error
+                type: object
+                properties:
+                  authToken:
+                    type: string
+                  expiresIn:
+                    type: integer
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /signatures:
+    post:
+      summary: Create a new signature
+      operationId: createSignature
+      security:
+        - BearerAuth: []
+      tags:
+        - signatures
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - imageData
+                - width
+                - height
+                - deviceInfo
+              properties:
+                imageData:
+                  type: string
+                  description: Base64 encoded signature image
+                width:
+                  type: integer
+                height:
+                  type: integer
+                deviceInfo:
+                  type: object
+                  required:
+                    - deviceId
+                    - platform
+                  properties:
+                    deviceId:
+                      type: string
+                    platform:
+                      type: string
+                    pressureData:
+                      type: array
+                      items:
+                        type: number
+      responses:
+        '201':
+          description: Signature created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Signature"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Forbidden - Device not authenticated
           content:
             application/json:
               schema:
@@ -93,25 +168,54 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
-    Pet:
+    Signature:
       type: object
       required:
         - id
-        - name
+        - imageData
+        - width
+        - height
+        - createdAt
+        - userId
+        - deviceInfo
       properties:
         id:
+          type: string
+        imageData:
+          type: string
+        width:
           type: integer
-          format: int64
-        name:
+        height:
+          type: integer
+        createdAt:
           type: string
-        tag:
+          format: date-time
+        userId:
           type: string
-    Pets:
-      type: array
-      maxItems: 100
-      items:
-        $ref: "#/components/schemas/Pet"
+        deviceInfo:
+          type: object
+          required:
+            - deviceId
+            - platform
+            - verificationStatus
+          properties:
+            deviceId:
+              type: string
+            platform:
+              type: string
+            verificationStatus:
+              type: string
+              enum: [VERIFIED, UNVERIFIED, BLOCKED]
+            pressureData:
+              type: array
+              items:
+                type: number
     Error:
       type: object
       required:

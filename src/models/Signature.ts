@@ -40,16 +40,36 @@ export interface Signature {
   /**
    * Metadata about the signature creation
    */
-  metadata: {
+  deviceInfo: {
+    /**
+     * Unique identifier for the device
+     */
+    deviceId: string;
+
     /**
      * Device used to create the signature (e.g., "tablet", "touchscreen", "signature-pad")
      */
     device: string;
     
     /**
-     * Browser/platform information
+     * Platform/OS information
      */
     platform: string;
+    
+    /**
+     * Device verification status
+     */
+    verificationStatus: 'VERIFIED' | 'UNVERIFIED' | 'BLOCKED';
+
+    /**
+     * Authentication token for the device
+     */
+    authToken?: string;
+
+    /**
+     * Token expiration timestamp
+     */
+    tokenExpiration?: Date;
     
     /**
      * Pressure sensitivity data points if available
