@@ -1,12 +1,173 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: Swagger Petstore
+  title: Mobile Dev API
+  description: API for mobile application with Apple Login authentication
   license:
     name: MIT
 servers:
-  - url: http://petstore.swagger.io/v1
+  - url: https://api.yourapp.com/v1
 paths:
+  /auth/apple/verify:
+    post:
+      summary: Verify Apple ID token
+      description: Verifies an Apple ID token and returns user information
+      operationId: verifyAppleToken
+      tags:
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppleAuthRequest'
+      responses:
+        '200':
+          description: Token verification successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppleAuthResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for Apple token verification
+      operationId: verifyAppleTokenOptions
+      tags:
+        - authentication
+      responses:
+        '200':
+          description: CORS preflight response
+  /auth/apple/refresh:
+    post:
+      summary: Refresh Apple authentication token
+      description: Refreshes an Apple authentication token using a refresh token
+      operationId: refreshAppleToken
+      tags:
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  description: The refresh token
+      responses:
+        '200':
+          description: Token refresh successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppleAuthResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for Apple token refresh
+      operationId: refreshAppleTokenOptions
+      tags:
+        - authentication
+      responses:
+        '200':
+          description: CORS preflight response
+  /auth/apple/signout:
+    post:
+      summary: Sign out Apple user
+      description: Signs out a user and revokes their Apple tokens
+      operationId: signOutAppleUser
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: The refresh token to revoke
+      responses:
+        '200':
+          description: Sign out successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for Apple sign out
+      operationId: signOutAppleUserOptions
+      tags:
+        - authentication
+      responses:
+        '200':
+          description: CORS preflight response
+  /auth/apple/profile:
+    get:
+      summary: Get Apple user profile
+      description: Gets the current user's profile information
+      operationId: getAppleUserProfile
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppleAuthResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for Apple user profile
+      operationId: getAppleUserProfileOptions
+      tags:
+        - authentication
+      responses:
+        '200':
+          description: CORS preflight response
   /pets:
     get:
       summary: List all pets
@@ -93,7 +254,113 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
+    AppleUser:
+      type: object
+      required:
+        - id
+        - authToken
+        - expiresAt
+        - createdAt
+        - lastLoginAt
+      properties:
+        id:
+          type: string
+          description: Unique Apple user identifier
+        email:
+          type: string
+          format: email
+          description: User's email address
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+        fullName:
+          type: string
+          description: User's full name
+        isPrivateEmail:
+          type: boolean
+          description: Whether the email is private
+        authToken:
+          type: string
+          description: Authentication token
+        refreshToken:
+          type: string
+          description: Refresh token
+        expiresAt:
+          type: string
+          format: date-time
+          description: Token expiration time
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation time
+        lastLoginAt:
+          type: string
+          format: date-time
+          description: Last login time
+    AppleAuthRequest:
+      type: object
+      required:
+        - identityToken
+      properties:
+        identityToken:
+          type: string
+          description: Apple ID token
+        authorizationCode:
+          type: string
+          description: Apple authorization code
+        user:
+          type: object
+          properties:
+            name:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+            email:
+              type: string
+              format: email
+        state:
+          type: string
+          description: State parameter for security
+    AppleAuthResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Whether the operation was successful
+        user:
+          $ref: '#/components/schemas/AppleUser'
+        error:
+          type: string
+          description: Error message if operation failed
+        message:
+          type: string
+          description: Success or informational message
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Error message
     Pet:
       type: object
       required:
