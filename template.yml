@@ -15,21 +15,88 @@ Resources:
       Handler: bootstrap
       Runtime: provided.al2
       Tracing: Active
+      Environment:
+        Variables:
+          APPLE_CLIENT_ID: !Ref AppleClientId
+          APPLE_TEAM_ID: !Ref AppleTeamId
+          APPLE_KEY_ID: !Ref AppleKeyId
+          APPLE_PRIVATE_KEY: !Ref ApplePrivateKey
       Policies:
         - AmazonDynamoDBFullAccess
         - AmazonS3FullAccess
         - AdministratorAccess
       Events:
+        # Original image submission endpoint
         CatchAll:
           Type: Api
           Properties:
             Path: /bootstrap
             Method: GET
+        # Apple Authentication endpoints
+        AppleVerifyToken:
+          Type: Api
+          Properties:
+            Path: /auth/apple/verify
+            Method: POST
+        AppleVerifyTokenOptions:
+          Type: Api
+          Properties:
+            Path: /auth/apple/verify
+            Method: OPTIONS
+        AppleRefreshToken:
+          Type: Api
+          Properties:
+            Path: /auth/apple/refresh
+            Method: POST
+        AppleRefreshTokenOptions:
+          Type: Api
+          Properties:
+            Path: /auth/apple/refresh
+            Method: OPTIONS
+        AppleSignOut:
+          Type: Api
+          Properties:
+            Path: /auth/apple/signout
+            Method: POST
+        AppleSignOutOptions:
+          Type: Api
+          Properties:
+            Path: /auth/apple/signout
+            Method: OPTIONS
+        AppleProfile:
+          Type: Api
+          Properties:
+            Path: /auth/apple/profile
+            Method: GET
+        AppleProfileOptions:
+          Type: Api
+          Properties:
+            Path: /auth/apple/profile
+            Method: OPTIONS
       Tags:
         Name: submitImage
         business_unit: agile_devops_pmm
         service_name: open_devops_image_rec
         resource_owner: wmarusiak
+
+Parameters:
+  AppleClientId:
+    Type: String
+    Description: Apple Client ID for authentication
+    Default: ""
+  AppleTeamId:
+    Type: String
+    Description: Apple Team ID for authentication
+    Default: ""
+  AppleKeyId:
+    Type: String
+    Description: Apple Key ID for authentication
+    Default: ""
+  ApplePrivateKey:
+    Type: String
+    Description: Apple Private Key for authentication (PEM format)
+    Default: ""
+    NoEcho: true
 
 Outputs:
   SubmitImageAPI:
