@@ -34,3 +34,6 @@ npm install
 cd submitImage
 go mod download
 ```
+
+#### Testing
+``` Update readme
