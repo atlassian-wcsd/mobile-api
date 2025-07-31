@@ -36,4 +36,4 @@ go mod download
 ```
 
 #### Testing
-``` Updating the homescreen
+``` Update readme
