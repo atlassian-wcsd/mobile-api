@@ -6,7 +6,7 @@ export class AppleAuthService {
 
   constructor() {
     this.baseUrl = process.env.REACT_APP_API_BASE_URL || 'https://api.yourapp.com';
-    this.apiKey = process.env.REACT_APP_API_KEY;
+    this.apiKey = process.env.REACT_APP_API_KEY; // this is a comment
   }
 
   /**
