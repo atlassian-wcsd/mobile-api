@@ -168,91 +168,80 @@ paths:
       responses:
         '200':
           description: CORS preflight response
-  /pets:
-    get:
-      summary: List all pets
-      operationId: listPets
-      tags:
-        - pets
-      parameters:
-        - name: limit
-          in: query
-          description: How many items to return at one time (max 100)
-          required: false
-          schema:
-            type: integer
-            maximum: 100
-            format: int32
-      responses:
-        '200':
-          description: A paged array of pets
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
-          content:
-            application/json:    
-              schema:
-                $ref: "#/components/schemas/Pets"
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+  /feedback:
     post:
-      summary: Create a pet
-      operationId: createPets
+      summary: Submit user feedback
+      operationId: submitFeedback
       tags:
-        - pets
+        - feedback
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
+              $ref: '#/components/schemas/FeedbackSubmissionRequest'
         required: true
       responses:
         '201':
-          description: Null response
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackSubmissionResponse"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           description: unexpected error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /pets/{petId}:
-    get:
-      summary: Info for a specific pet
-      operationId: showPetById
+    options:
+      summary: CORS preflight for feedback submission
+      operationId: feedbackOptions
       tags:
-        - pets
-      parameters:
-        - name: petId
-          in: path
-          required: true
-          description: The id of the pet to retrieve
-          schema:
-            type: string
-        - name: petAlias
-          in: path
-          required: false
-          description: The alias of the pet to retrieve
-          schema:
-            type: string
+        - feedback
       responses:
         '200':
-          description: Expected response to a valid request
+          description: CORS headers
+  /feedback/history:
+    get:
+      summary: Get user's feedback history
+      operationId: getFeedbackHistory
+      tags:
+        - feedback
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User's feedback history
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Pet"
+                $ref: "#/components/schemas/FeedbackListResponse"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           description: unexpected error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    options:
+      summary: CORS preflight for feedback history
+      operationId: feedbackHistoryOptions
+      tags:
+        - feedback
+      responses:
+        '200':
+          description: CORS headers
 components:
   securitySchemes:
     BearerAuth:
@@ -361,24 +350,169 @@ components:
         error:
           type: string
           description: Error message
-    Pet:
+    FeedbackSubmissionRequest:
+      type: object
+      required:
+        - rating
+        - category
+        - subject
+        - message
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: User rating from 1 to 5 stars
+        category:
+          type: string
+          enum:
+            - bug_report
+            - feature_request
+            - general_feedback
+            - support_request
+            - performance_issue
+            - ui_ux_feedback
+          description: Category of feedback
+        subject:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Brief subject of the feedback
+        message:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: Detailed feedback message
+        email:
+          type: string
+          format: email
+          description: Optional email for follow-up
+        deviceInfo:
+          $ref: '#/components/schemas/DeviceInfo'
+        timestamp:
+          type: string
+          format: date-time
+          description: Submission timestamp
+    FeedbackSubmissionResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Whether the submission was successful
+        feedbackId:
+          type: string
+          description: Unique identifier for the submitted feedback
+        message:
+          type: string
+          description: Success message
+        error:
+          type: string
+          description: Error message if submission failed
+    FeedbackListResponse:
+      type: object
+      required:
+        - success
+        - count
+      properties:
+        success:
+          type: boolean
+          description: Whether the request was successful
+        feedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feedback'
+          description: List of user's feedback
+        count:
+          type: integer
+          description: Number of feedback items returned
+        error:
+          type: string
+          description: Error message if request failed
+    Feedback:
       type: object
       required:
         - id
-        - name
+        - rating
+        - category
+        - subject
+        - message
+        - createdAt
+        - status
       properties:
         id:
+          type: string
+          description: Unique feedback identifier
+        userId:
+          type: string
+          description: User who submitted the feedback
+        email:
+          type: string
+          format: email
+          description: Contact email
+        rating:
           type: integer
-          format: int64
-        name:
+          minimum: 1
+          maximum: 5
+          description: User rating
+        category:
           type: string
-        tag:
+          description: Feedback category
+        subject:
           type: string
-    Pets:
-      type: array
-      maxItems: 100
-      items:
-        $ref: "#/components/schemas/Pet"
+          description: Feedback subject
+        message:
+          type: string
+          description: Feedback message
+        attachments:
+          type: array
+          items:
+            type: string
+          description: URLs to attached files
+        deviceInfo:
+          $ref: '#/components/schemas/DeviceInfo'
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        status:
+          type: string
+          enum:
+            - submitted
+            - in_review
+            - resolved
+            - closed
+          description: Current status of the feedback
+        response:
+          type: string
+          description: Response from support team
+        respondedAt:
+          type: string
+          format: date-time
+          description: Response timestamp
+        respondedBy:
+          type: string
+          description: Who responded to the feedback
+    DeviceInfo:
+      type: object
+      properties:
+        userAgent:
+          type: string
+          description: Browser user agent string
+        platform:
+          type: string
+          description: Operating system platform
+        screenResolution:
+          type: string
+          description: Screen resolution (e.g., "1920x1080")
+        viewport:
+          type: string
+          description: Browser viewport size
+        timestamp:
+          type: string
+          format: date-time
+          description: When device info was collected
     Error:
       type: object
       required:

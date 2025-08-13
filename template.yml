@@ -73,6 +73,27 @@ Resources:
           Properties:
             Path: /auth/apple/profile
             Method: OPTIONS
+        # Feedback endpoints
+        FeedbackSubmit:
+          Type: Api
+          Properties:
+            Path: /feedback
+            Method: POST
+        FeedbackSubmitOptions:
+          Type: Api
+          Properties:
+            Path: /feedback
+            Method: OPTIONS
+        FeedbackHistory:
+          Type: Api
+          Properties:
+            Path: /feedback/history
+            Method: GET
+        FeedbackHistoryOptions:
+          Type: Api
+          Properties:
+            Path: /feedback/history
+            Method: OPTIONS
       Tags:
         Name: submitImage
         business_unit: agile_devops_pmm
