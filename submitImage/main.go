@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/ses"
 	"log"
 	"os"
 	"submit-image/opendevopslambda"
@@ -22,6 +23,7 @@ func init() {
 type Router struct {
 	imageDependency *opendevopslambda.Dependency
 	appleAuthHandler *opendevopslambda.AppleAuthHandler
+	userAuthHandler *opendevopslambda.UserAuthHandler
 }
 
 // NewRouter creates a new router with all handlers
@@ -39,9 +41,25 @@ func NewRouter() (*Router, error) {
 		// Continue without Apple auth if configuration is missing
 	}
 
+	// Initialize user auth handler
+	dynamoDBClient := dynamodb.New(sess)
+	sesClient := ses.New(sess)
+	fromEmail := os.Getenv("FROM_EMAIL")
+	baseURL := os.Getenv("BASE_URL")
+	
+	if fromEmail == "" {
+		fromEmail = "noreply@yourapp.com" // Default fallback
+	}
+	if baseURL == "" {
+		baseURL = "https://yourapp.com" // Default fallback
+	}
+	
+	userAuthHandler := opendevopslambda.NewUserAuthHandler(dynamoDBClient, sesClient, fromEmail, baseURL)
+
 	return &Router{
 		imageDependency: imageDep,
 		appleAuthHandler: appleHandler,
+		userAuthHandler: userAuthHandler,
 	}, nil
 }
 
@@ -51,6 +69,24 @@ func (r *Router) Handler(ctx context.Context, request events.APIGatewayProxyRequ
 	method := request.HTTPMethod
 
 	log.Printf("Handling request: %s %s", method, path)
+
+	// User Authentication routes
+	if r.userAuthHandler != nil {
+		switch {
+		case path == "/api/register" && method == "POST":
+			return r.userAuthHandler.HandleRegister(ctx, request)
+		case path == "/api/login" && method == "POST":
+			return r.userAuthHandler.HandleLogin(ctx, request)
+		case path == "/api/verify-email" && method == "POST":
+			return r.userAuthHandler.HandleVerifyEmail(ctx, request)
+		case path == "/api/password-reset" && method == "POST":
+			return r.userAuthHandler.HandlePasswordReset(ctx, request)
+		case path == "/api/password-reset-confirm" && method == "POST":
+			return r.userAuthHandler.HandlePasswordResetConfirm(ctx, request)
+		case strings.HasPrefix(path, "/api/") && method == "OPTIONS":
+			return r.userAuthHandler.HandleOptions(ctx, request)
+		}
+	}
 
 	// Apple Authentication routes
 	if r.appleAuthHandler != nil {

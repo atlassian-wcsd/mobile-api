@@ -8,6 +8,208 @@ info:
 servers:
   - url: https://api.yourapp.com/v1
 paths:
+  /api/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account with email verification
+      operationId: registerUser
+      tags:
+        - user-authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistrationResponse'
+        '400':
+          description: Bad request - validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for user registration
+      responses:
+        '200':
+          description: CORS headers
+  
+  /api/login:
+    post:
+      summary: User login
+      description: Authenticates a user and returns access tokens
+      operationId: loginUser
+      tags:
+        - user-authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for user login
+      responses:
+        '200':
+          description: CORS headers
+
+  /api/verify-email:
+    post:
+      summary: Verify email address
+      description: Verifies a user's email address using a verification token
+      operationId: verifyEmail
+      tags:
+        - user-authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailVerificationRequest'
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for email verification
+      responses:
+        '200':
+          description: CORS headers
+
+  /api/password-reset:
+    post:
+      summary: Request password reset
+      description: Initiates a password reset process by sending an email
+      operationId: requestPasswordReset
+      tags:
+        - user-authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '200':
+          description: Password reset email sent (if email exists)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for password reset
+      responses:
+        '200':
+          description: CORS headers
+
+  /api/password-reset-confirm:
+    post:
+      summary: Confirm password reset
+      description: Resets a user's password using a reset token
+      operationId: confirmPasswordReset
+      tags:
+        - user-authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid token or password validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for password reset confirmation
+      responses:
+        '200':
+          description: CORS headers
+
   /auth/apple/verify:
     post:
       summary: Verify Apple ID token
@@ -361,6 +563,208 @@ components:
         error:
           type: string
           description: Error message
+    
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          description: Success message
+    
+    RateLimitResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Rate limit error message
+        remaining:
+          type: integer
+          description: Number of remaining requests
+        resetTime:
+          type: string
+          description: Time when rate limit resets
+    
+    User:
+      type: object
+      required:
+        - id
+        - username
+        - email
+        - role
+        - emailVerified
+        - createdAt
+        - updatedAt
+        - isActive
+      properties:
+        id:
+          type: string
+          description: Unique user identifier
+        username:
+          type: string
+          description: User's username
+        email:
+          type: string
+          format: email
+          description: User's email address
+        fullName:
+          type: string
+          description: User's full name
+        phoneNumber:
+          type: string
+          description: User's phone number
+        role:
+          type: string
+          description: User's role
+          enum: [user, admin, moderator]
+        emailVerified:
+          type: boolean
+          description: Whether the email is verified
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation time
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update time
+        lastLoginAt:
+          type: string
+          format: date-time
+          description: Last login time
+        isActive:
+          type: boolean
+          description: Whether the account is active
+    
+    UserRegistrationRequest:
+      type: object
+      required:
+        - username
+        - password
+        - email
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+          pattern: '^[a-zA-Z0-9_-]+$'
+          description: Desired username (3-20 characters, alphanumeric, underscore, hyphen)
+        password:
+          type: string
+          minLength: 8
+          description: Password (minimum 8 characters with uppercase, lowercase, number, and special character)
+        email:
+          type: string
+          format: email
+          description: Email address
+        fullName:
+          type: string
+          maxLength: 100
+          description: Full name (optional)
+        phoneNumber:
+          type: string
+          maxLength: 20
+          description: Phone number (optional)
+    
+    UserRegistrationResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Whether registration was successful
+        message:
+          type: string
+          description: Registration result message
+        userId:
+          type: string
+          description: ID of the created user (if successful)
+        error:
+          type: string
+          description: Error message (if failed)
+    
+    UserLoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Username or email address
+        password:
+          type: string
+          description: User's password
+    
+    UserLoginResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Whether login was successful
+        message:
+          type: string
+          description: Login result message
+        accessToken:
+          type: string
+          description: Access token (if successful)
+        refreshToken:
+          type: string
+          description: Refresh token (if successful)
+        user:
+          $ref: '#/components/schemas/User'
+        error:
+          type: string
+          description: Error message (if failed)
+    
+    EmailVerificationRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Email verification token
+    
+    PasswordResetRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email address for password reset
+    
+    PasswordResetConfirmRequest:
+      type: object
+      required:
+        - token
+        - newPassword
+      properties:
+        token:
+          type: string
+          description: Password reset token
+        newPassword:
+          type: string
+          minLength: 8
+          description: New password (minimum 8 characters with complexity requirements)
     Pet:
       type: object
       required:

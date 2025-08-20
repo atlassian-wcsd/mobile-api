@@ -6,6 +6,77 @@ Globals:
     Timeout: 5
 
 Resources:
+  # DynamoDB Tables
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Users
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: username
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+        - AttributeName: email_verify_token
+          AttributeType: S
+        - AttributeName: password_reset_token
+          AttributeType: S
+      KeySchema:
+        - AttributeName: username
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: EmailIndex
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: EmailVerifyTokenIndex
+          KeySchema:
+            - AttributeName: email_verify_token
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: PasswordResetTokenIndex
+          KeySchema:
+            - AttributeName: password_reset_token
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Name
+          Value: Users
+        - Key: business_unit
+          Value: agile_devops_pmm
+        - Key: service_name
+          Value: open_devops_image_rec
+        - Key: resource_owner
+          Value: wmarusiak
+
+  RateLimitsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: RateLimits
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: key
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: expires_at
+        Enabled: true
+      Tags:
+        - Key: Name
+          Value: RateLimits
+        - Key: business_unit
+          Value: agile_devops_pmm
+        - Key: service_name
+          Value: open_devops_image_rec
+        - Key: resource_owner
+          Value: wmarusiak
+
   SubmitImageFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -21,9 +92,12 @@ Resources:
           APPLE_TEAM_ID: !Ref AppleTeamId
           APPLE_KEY_ID: !Ref AppleKeyId
           APPLE_PRIVATE_KEY: !Ref ApplePrivateKey
+          FROM_EMAIL: !Ref FromEmail
+          BASE_URL: !Ref BaseURL
       Policies:
         - AmazonDynamoDBFullAccess
         - AmazonS3FullAccess
+        - AmazonSESFullAccess
         - AdministratorAccess
       Events:
         # Original image submission endpoint
@@ -73,6 +147,57 @@ Resources:
           Properties:
             Path: /auth/apple/profile
             Method: OPTIONS
+        # User Registration and Authentication endpoints
+        UserRegister:
+          Type: Api
+          Properties:
+            Path: /api/register
+            Method: POST
+        UserRegisterOptions:
+          Type: Api
+          Properties:
+            Path: /api/register
+            Method: OPTIONS
+        UserLogin:
+          Type: Api
+          Properties:
+            Path: /api/login
+            Method: POST
+        UserLoginOptions:
+          Type: Api
+          Properties:
+            Path: /api/login
+            Method: OPTIONS
+        UserVerifyEmail:
+          Type: Api
+          Properties:
+            Path: /api/verify-email
+            Method: POST
+        UserVerifyEmailOptions:
+          Type: Api
+          Properties:
+            Path: /api/verify-email
+            Method: OPTIONS
+        UserPasswordReset:
+          Type: Api
+          Properties:
+            Path: /api/password-reset
+            Method: POST
+        UserPasswordResetOptions:
+          Type: Api
+          Properties:
+            Path: /api/password-reset
+            Method: OPTIONS
+        UserPasswordResetConfirm:
+          Type: Api
+          Properties:
+            Path: /api/password-reset-confirm
+            Method: POST
+        UserPasswordResetConfirmOptions:
+          Type: Api
+          Properties:
+            Path: /api/password-reset-confirm
+            Method: OPTIONS
       Tags:
         Name: submitImage
         business_unit: agile_devops_pmm
@@ -97,6 +222,14 @@ Parameters:
     Description: Apple Private Key for authentication (PEM format)
     Default: ""
     NoEcho: true
+  FromEmail:
+    Type: String
+    Description: Email address to send notifications from (must be verified in SES)
+    Default: "noreply@yourapp.com"
+  BaseURL:
+    Type: String
+    Description: Base URL for the application (used in email links)
+    Default: "https://yourapp.com"
 
 Outputs:
   SubmitImageAPI:
