@@ -7,9 +7,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/ses"
 	"log"
 	"os"
 	"submit-image/opendevopslambda"
+	"submit-image/handlers"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -22,6 +24,7 @@ func init() {
 type Router struct {
 	imageDependency *opendevopslambda.Dependency
 	appleAuthHandler *opendevopslambda.AppleAuthHandler
+	userRegistrationHandler *handlers.UserRegistrationHandler
 }
 
 // NewRouter creates a new router with all handlers
@@ -39,9 +42,16 @@ func NewRouter() (*Router, error) {
 		// Continue without Apple auth if configuration is missing
 	}
 
+	// Initialize user registration handler
+	userRegHandler := handlers.NewUserRegistrationHandler(
+		dynamodb.New(sess),
+		ses.New(sess),
+	)
+
 	return &Router{
 		imageDependency: imageDep,
 		appleAuthHandler: appleHandler,
+		userRegistrationHandler: userRegHandler,
 	}, nil
 }
 
@@ -51,6 +61,16 @@ func (r *Router) Handler(ctx context.Context, request events.APIGatewayProxyRequ
 	method := request.HTTPMethod
 
 	log.Printf("Handling request: %s %s", method, path)
+
+	// User Registration routes
+	switch {
+	case path == "/auth/register" && method == "POST":
+		return r.userRegistrationHandler.HandleRegister(ctx, request)
+	case path == "/auth/verify-email" && method == "POST":
+		return r.userRegistrationHandler.HandleVerifyEmail(ctx, request)
+	case (path == "/auth/register" || path == "/auth/verify-email") && method == "OPTIONS":
+		return r.userRegistrationHandler.HandleOptions(ctx, request)
+	}
 
 	// Apple Authentication routes
 	if r.appleAuthHandler != nil {

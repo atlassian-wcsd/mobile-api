@@ -21,9 +21,13 @@ Resources:
           APPLE_TEAM_ID: !Ref AppleTeamId
           APPLE_KEY_ID: !Ref AppleKeyId
           APPLE_PRIVATE_KEY: !Ref ApplePrivateKey
+          FROM_EMAIL: !Ref FromEmail
+          BASE_URL: !Ref BaseURL
+          RECAPTCHA_SECRET_KEY: !Ref RecaptchaSecretKey
       Policies:
         - AmazonDynamoDBFullAccess
         - AmazonS3FullAccess
+        - AmazonSESFullAccess
         - AdministratorAccess
       Events:
         # Original image submission endpoint
@@ -73,6 +77,27 @@ Resources:
           Properties:
             Path: /auth/apple/profile
             Method: OPTIONS
+        # User Registration endpoints
+        UserRegister:
+          Type: Api
+          Properties:
+            Path: /auth/register
+            Method: POST
+        UserRegisterOptions:
+          Type: Api
+          Properties:
+            Path: /auth/register
+            Method: OPTIONS
+        UserVerifyEmail:
+          Type: Api
+          Properties:
+            Path: /auth/verify-email
+            Method: POST
+        UserVerifyEmailOptions:
+          Type: Api
+          Properties:
+            Path: /auth/verify-email
+            Method: OPTIONS
       Tags:
         Name: submitImage
         business_unit: agile_devops_pmm
@@ -95,6 +120,19 @@ Parameters:
   ApplePrivateKey:
     Type: String
     Description: Apple Private Key for authentication (PEM format)
+    Default: ""
+    NoEcho: true
+  FromEmail:
+    Type: String
+    Description: Email address to send emails from (must be verified in SES)
+    Default: "noreply@yourapp.com"
+  BaseURL:
+    Type: String
+    Description: Base URL of the application for email links
+    Default: "https://yourapp.com"
+  RecaptchaSecretKey:
+    Type: String
+    Description: Google reCAPTCHA secret key for CAPTCHA verification
     Default: ""
     NoEcho: true
 
