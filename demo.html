@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Health Overview Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .demo-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .demo-section {
+            margin-bottom: 30px;
+        }
+        .demo-section h3 {
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        .file-list {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .file-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .feature-card {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .feature-card h4 {
+            margin: 0 0 10px 0;
+            color: #111827;
+        }
+        .feature-card p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-success {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+        .api-endpoint {
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🏥 Service Health Overview Implementation</h1>
+            <p>Infrastructure performance monitoring for operations engineers and service owners</p>
+            <div class="status-indicator status-success">
+                ✅ Implementation Complete
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>📁 Created Files</h3>
+            <div class="file-list">
+                <div class="file-item">
+                    <span class="file-icon">📄</span>
+                    <strong>src/models/InfrastructureMetrics.ts</strong> - TypeScript types and interfaces
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">⚙️</span>
+                    <strong>src/services/InfrastructureMetricsService.ts</strong> - API service layer
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">🎨</span>
+                    <strong>src/components/InfrastructureMetrics.tsx</strong> - React component for metrics display
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">📱</span>
+                    <strong>src/pages/ServiceHealthOverview.tsx</strong> - Main service health overview page
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">🔧</span>
+                    <strong>api.yaml</strong> - Updated with infrastructure metrics endpoints
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🎯 Key Features Implemented</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🖥️ Processor Metrics</h4>
+                    <p>CPU usage percentage, load averages, core count, and frequency monitoring</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💾 Memory Metrics</h4>
+                    <p>RAM usage, total/used/free memory, swap usage, and buffers/cache tracking</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💿 I/O Performance</h4>
+                    <p>Disk usage, read/write speeds, network throughput, and operation counts</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🌐 Throughput Metrics</h4>
+                    <p>Requests per second, response times (avg, p50, p95, p99), error rates</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 Real-time Updates</h4>
+                    <p>30-second refresh intervals with automatic polling and error handling</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 Fallback Support</h4>
+                    <p>Mock data generation when metrics service is unavailable</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🔌 API Endpoints</h3>
+            <div class="file-list">
+                <div class="api-endpoint">GET /infrastructure/health</div>
+                <div class="api-endpoint">GET /infrastructure/metrics/current</div>
+                <div class="api-endpoint">POST /infrastructure/metrics/history</div>
+                <div class="api-endpoint">GET /infrastructure/metrics/summary</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>✅ Acceptance Criteria Met</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>✅ Required Metrics</h4>
+                    <p>Processor usage, RAM usage, IO performance, and throughput all implemented</p>
+                </div>
+                <div class="feature-card">
+                    <h4>✅ Real-time Data</h4>
+                    <p>30-second refresh intervals with live updates and timestamps</p>
+                </div>
+                <div class="feature-card">
+                    <h4>✅ Easy Interpretation</h4>
+                    <p>Color-coded health status, formatted values, and intuitive UI</p>
+                </div>
+                <div class="feature-card">
+                    <h4>✅ Extensible Design</h4>
+                    <p>Modular architecture allows easy addition of new metrics</p>
+                </div>
+                <div class="feature-card">
+                    <h4>✅ Performance Optimized</h4>
+                    <p>Efficient polling, error handling, and fallback mechanisms</p>
+                </div>
+                <div class="feature-card">
+                    <h4>✅ Feedback Mechanism</h4>
+                    <p>Built-in feedback form for user suggestions and improvements</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🚀 Usage Instructions</h3>
+            <div class="file-list">
+                <p><strong>1. Import the main component:</strong></p>
+                <div class="api-endpoint">import ServiceHealthOverview from './src/pages/ServiceHealthOverview';</div>
+                
+                <p><strong>2. Use in your React application:</strong></p>
+                <div class="api-endpoint">&lt;ServiceHealthOverview /&gt;</div>
+                
+                <p><strong>3. Configure environment variables:</strong></p>
+                <div class="api-endpoint">REACT_APP_API_BASE_URL=https://your-api.com/v1</div>
+                
+                <p><strong>4. The component will automatically:</strong></p>
+                <ul style="margin: 10px 0; padding-left: 20px; color: #6b7280;">
+                    <li>Check if the metrics service is available</li>
+                    <li>Display real metrics if available, or demo data if not</li>
+                    <li>Update every 30 seconds automatically</li>
+                    <li>Show health status and allow user feedback</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🎨 Visual Features</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🎯 Health Status Indicators</h4>
+                    <p>Green (healthy), Yellow (warning), Red (critical) status indicators</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 Metric Cards</h4>
+                    <p>Organized display with icons, values, and status-based coloring</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 Loading States</h4>
+                    <p>Spinner animations and loading indicators for better UX</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚠️ Error Handling</h4>
+                    <p>Graceful error display with retry options</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

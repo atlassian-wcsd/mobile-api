@@ -253,6 +253,142 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /infrastructure/health:
+    get:
+      summary: Check infrastructure monitoring service health
+      description: Validates if the infrastructure metrics service is available
+      operationId: checkInfrastructureHealth
+      tags:
+        - infrastructure
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  message:
+                    type: string
+                    example: "Infrastructure monitoring service is operational"
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /infrastructure/metrics/current:
+    get:
+      summary: Get current infrastructure metrics
+      description: Retrieves real-time infrastructure performance metrics
+      operationId: getCurrentInfrastructureMetrics
+      tags:
+        - infrastructure
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureMetricsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Metrics service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /infrastructure/metrics/history:
+    post:
+      summary: Get historical infrastructure metrics
+      description: Retrieves infrastructure metrics for a specified time range
+      operationId: getInfrastructureMetricsHistory
+      tags:
+        - infrastructure
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricsHistoryRequest'
+      responses:
+        '200':
+          description: Historical metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsHistoryResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /infrastructure/metrics/summary:
+    get:
+      summary: Get infrastructure metrics summary
+      description: Retrieves aggregated metrics summary for a time range
+      operationId: getInfrastructureMetricsSummary
+      tags:
+        - infrastructure
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: timeRange
+          in: query
+          description: Time range for the summary (1h, 6h, 24h, 7d, 30d)
+          required: false
+          schema:
+            type: string
+            enum: ['1h', '6h', '24h', '7d', '30d']
+            default: '24h'
+      responses:
+        '200':
+          description: Metrics summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      averageCpuUsage:
+                        type: number
+                      averageMemoryUsage:
+                        type: number
+                      averageResponseTime:
+                        type: number
+                      totalRequests:
+                        type: number
+                      errorRate:
+                        type: number
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   securitySchemes:
     BearerAuth:
@@ -390,3 +526,251 @@ components:
           format: int32
         message:
           type: string
+    InfrastructureMetrics:
+      type: object
+      required:
+        - timestamp
+        - processorUsage
+        - ramUsage
+        - ioPerformance
+        - throughput
+        - containerInfo
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when metrics were collected
+        processorUsage:
+          $ref: '#/components/schemas/ProcessorMetrics'
+        ramUsage:
+          $ref: '#/components/schemas/MemoryMetrics'
+        ioPerformance:
+          $ref: '#/components/schemas/IOMetrics'
+        throughput:
+          $ref: '#/components/schemas/ThroughputMetrics'
+        containerInfo:
+          $ref: '#/components/schemas/ContainerInfo'
+    ProcessorMetrics:
+      type: object
+      required:
+        - cpuUsagePercent
+        - loadAverage
+        - coreCount
+      properties:
+        cpuUsagePercent:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: CPU usage percentage
+        loadAverage:
+          type: object
+          properties:
+            oneMinute:
+              type: number
+            fiveMinutes:
+              type: number
+            fifteenMinutes:
+              type: number
+        coreCount:
+          type: integer
+          minimum: 1
+          description: Number of CPU cores
+        frequency:
+          type: number
+          description: CPU frequency in MHz
+    MemoryMetrics:
+      type: object
+      required:
+        - totalMemoryMB
+        - usedMemoryMB
+        - freeMemoryMB
+        - usagePercent
+      properties:
+        totalMemoryMB:
+          type: number
+          minimum: 0
+          description: Total memory in MB
+        usedMemoryMB:
+          type: number
+          minimum: 0
+          description: Used memory in MB
+        freeMemoryMB:
+          type: number
+          minimum: 0
+          description: Free memory in MB
+        usagePercent:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Memory usage percentage
+        buffersCacheMB:
+          type: number
+          description: Buffers and cache memory in MB
+        swapUsedMB:
+          type: number
+          description: Used swap memory in MB
+        swapTotalMB:
+          type: number
+          description: Total swap memory in MB
+    IOMetrics:
+      type: object
+      required:
+        - diskUsage
+        - diskIO
+        - networkIO
+      properties:
+        diskUsage:
+          type: object
+          properties:
+            totalSpaceGB:
+              type: number
+            usedSpaceGB:
+              type: number
+            freeSpaceGB:
+              type: number
+            usagePercent:
+              type: number
+        diskIO:
+          type: object
+          properties:
+            readBytesPerSecond:
+              type: number
+            writeBytesPerSecond:
+              type: number
+            readOperationsPerSecond:
+              type: number
+            writeOperationsPerSecond:
+              type: number
+        networkIO:
+          type: object
+          properties:
+            inboundBytesPerSecond:
+              type: number
+            outboundBytesPerSecond:
+              type: number
+            inboundPacketsPerSecond:
+              type: number
+            outboundPacketsPerSecond:
+              type: number
+    ThroughputMetrics:
+      type: object
+      required:
+        - requestsPerSecond
+        - responseTimeMs
+        - errorRate
+        - activeConnections
+      properties:
+        requestsPerSecond:
+          type: number
+          minimum: 0
+          description: Requests per second
+        responseTimeMs:
+          type: object
+          properties:
+            average:
+              type: number
+            p50:
+              type: number
+            p95:
+              type: number
+            p99:
+              type: number
+        errorRate:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Error rate percentage
+        activeConnections:
+          type: integer
+          minimum: 0
+          description: Number of active connections
+    ContainerInfo:
+      type: object
+      required:
+        - hostName
+        - platform
+        - uptime
+      properties:
+        containerId:
+          type: string
+          description: Container ID
+        containerName:
+          type: string
+          description: Container name
+        imageName:
+          type: string
+          description: Docker image name
+        imageTag:
+          type: string
+          description: Docker image tag
+        hostName:
+          type: string
+          description: Host name
+        platform:
+          type: string
+          description: Platform information
+        uptime:
+          type: integer
+          minimum: 0
+          description: Uptime in seconds
+    InfrastructureMetricsResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Whether the operation was successful
+        data:
+          $ref: '#/components/schemas/InfrastructureMetrics'
+        error:
+          type: string
+          description: Error message if operation failed
+        message:
+          type: string
+          description: Success or informational message
+    MetricsHistoryRequest:
+      type: object
+      required:
+        - timeRange
+        - interval
+      properties:
+        timeRange:
+          type: string
+          enum: ['1h', '6h', '24h', '7d', '30d']
+          description: Time range for historical data
+        interval:
+          type: string
+          enum: ['1m', '5m', '15m', '1h', '1d']
+          description: Data point interval
+        metrics:
+          type: array
+          items:
+            type: string
+          description: Optional filter for specific metrics
+    MetricsHistoryResponse:
+      type: object
+      required:
+        - success
+        - timeRange
+        - interval
+      properties:
+        success:
+          type: boolean
+          description: Whether the operation was successful
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InfrastructureMetrics'
+        timeRange:
+          type: string
+          description: Requested time range
+        interval:
+          type: string
+          description: Data point interval
+        error:
+          type: string
+          description: Error message if operation failed
+        message:
+          type: string
+          description: Success or informational message
