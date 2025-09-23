@@ -10,6 +10,16 @@ export interface AppleUser {
   expiresAt: Date;
   createdAt: Date;
   lastLoginAt: Date;
+  
+  // Wallet verification integration
+  walletVerified?: boolean;
+  walletVerificationDate?: Date;
+  verifiedCredentials?: {
+    ageVerified?: boolean;
+    identityVerified?: boolean;
+    addressVerified?: boolean;
+    verificationLevel?: 'basic' | 'enhanced' | 'full';
+  };
 }
 
 export interface AppleTokenPayload {
