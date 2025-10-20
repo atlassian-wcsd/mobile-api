@@ -22,6 +22,7 @@ func init() {
 type Router struct {
 	imageDependency *opendevopslambda.Dependency
 	appleAuthHandler *opendevopslambda.AppleAuthHandler
+	feedbackHandler *opendevopslambda.FeedbackHandler
 }
 
 // NewRouter creates a new router with all handlers
@@ -39,9 +40,12 @@ func NewRouter() (*Router, error) {
 		// Continue without Apple auth if configuration is missing
 	}
 
+	feedbackHandler := opendevopslambda.NewFeedbackHandler(dynamodb.New(sess))
+
 	return &Router{
 		imageDependency: imageDep,
 		appleAuthHandler: appleHandler,
+		feedbackHandler: feedbackHandler,
 	}, nil
 }
 
@@ -66,6 +70,11 @@ func (r *Router) Handler(ctx context.Context, request events.APIGatewayProxyRequ
 		case strings.HasPrefix(path, "/auth/apple/") && method == "OPTIONS":
 			return r.appleAuthHandler.HandleOptions(ctx, request)
 		}
+	}
+
+	// Feedback routes
+	if strings.HasPrefix(path, "/feedback") {
+		return r.feedbackHandler.HandleFeedbackRequest(ctx, request)
 	}
 
 	// Default to image submission handler for backward compatibility

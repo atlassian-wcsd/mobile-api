@@ -6,6 +6,45 @@ Globals:
     Timeout: 5
 
 Resources:
+  # DynamoDB table for user feedback
+  UserFeedbackTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: UserFeedback
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserIdIndex
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Name
+          Value: UserFeedback
+        - Key: business_unit
+          Value: agile_devops_pmm
+        - Key: service_name
+          Value: open_devops_image_rec
+        - Key: resource_owner
+          Value: wmarusiak
+
   SubmitImageFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -72,6 +111,57 @@ Resources:
           Type: Api
           Properties:
             Path: /auth/apple/profile
+            Method: OPTIONS
+        # Feedback endpoints
+        FeedbackSubmit:
+          Type: Api
+          Properties:
+            Path: /feedback
+            Method: POST
+        FeedbackSubmitOptions:
+          Type: Api
+          Properties:
+            Path: /feedback
+            Method: OPTIONS
+        FeedbackGet:
+          Type: Api
+          Properties:
+            Path: /feedback/{id}
+            Method: GET
+        FeedbackGetOptions:
+          Type: Api
+          Properties:
+            Path: /feedback/{id}
+            Method: OPTIONS
+        FeedbackUserGet:
+          Type: Api
+          Properties:
+            Path: /feedback/user
+            Method: GET
+        FeedbackUserGetOptions:
+          Type: Api
+          Properties:
+            Path: /feedback/user
+            Method: OPTIONS
+        FeedbackAdminAll:
+          Type: Api
+          Properties:
+            Path: /feedback/admin/all
+            Method: GET
+        FeedbackAdminAllOptions:
+          Type: Api
+          Properties:
+            Path: /feedback/admin/all
+            Method: OPTIONS
+        FeedbackAdminStats:
+          Type: Api
+          Properties:
+            Path: /feedback/admin/stats
+            Method: GET
+        FeedbackAdminStatsOptions:
+          Type: Api
+          Properties:
+            Path: /feedback/admin/stats
             Method: OPTIONS
       Tags:
         Name: submitImage
