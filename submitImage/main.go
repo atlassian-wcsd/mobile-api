@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"submit-image/opendevopslambda"
+	"submit-image/handlers"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -22,15 +23,17 @@ func init() {
 type Router struct {
 	imageDependency *opendevopslambda.Dependency
 	appleAuthHandler *opendevopslambda.AppleAuthHandler
+	feedbackHandler *handlers.FeedbackHandler
 }
 
 // NewRouter creates a new router with all handlers
 func NewRouter() (*Router, error) {
 	sess := session.Must(session.NewSession())
+	dynamoDBClient := dynamodb.New(sess)
 	
 	imageDep := &opendevopslambda.Dependency{
 		DepS3: s3.New(sess),
-		DepDynamoDB: dynamodb.New(sess),
+		DepDynamoDB: dynamoDBClient,
 	}
 
 	appleHandler, err := opendevopslambda.NewAppleAuthHandler()
@@ -39,9 +42,12 @@ func NewRouter() (*Router, error) {
 		// Continue without Apple auth if configuration is missing
 	}
 
+	feedbackHandler := handlers.NewFeedbackHandler(dynamoDBClient)
+
 	return &Router{
 		imageDependency: imageDep,
 		appleAuthHandler: appleHandler,
+		feedbackHandler: feedbackHandler,
 	}, nil
 }
 
@@ -51,6 +57,22 @@ func (r *Router) Handler(ctx context.Context, request events.APIGatewayProxyRequ
 	method := request.HTTPMethod
 
 	log.Printf("Handling request: %s %s", method, path)
+
+	// Feedback routes
+	switch {
+	case path == "/feedback" && method == "POST":
+		return r.feedbackHandler.HandleFeedbackSubmission(ctx, request)
+	case path == "/feedback/history" && method == "GET":
+		return r.feedbackHandler.HandleFeedbackHistory(ctx, request)
+	case path == "/feedback/stats" && method == "GET":
+		return r.feedbackHandler.HandleFeedbackStats(ctx, request)
+	case path == "/feedback/health" && method == "GET":
+		return r.feedbackHandler.HandleHealthCheck(ctx, request)
+	case strings.HasPrefix(path, "/feedback/category/") && method == "GET":
+		return r.feedbackHandler.HandleFeedbackByCategory(ctx, request)
+	case strings.HasPrefix(path, "/feedback") && method == "OPTIONS":
+		return r.feedbackHandler.HandleFeedbackOptions(ctx, request)
+	}
 
 	// Apple Authentication routes
 	if r.appleAuthHandler != nil {

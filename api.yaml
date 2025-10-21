@@ -253,6 +253,202 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /feedback:
+    post:
+      summary: Submit user feedback
+      description: Submit feedback from users about the application
+      operationId: submitFeedback
+      tags:
+        - feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackSubmissionRequest'
+      responses:
+        '200':
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackSubmissionResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for feedback submission
+      operationId: submitFeedbackOptions
+      tags:
+        - feedback
+      responses:
+        '200':
+          description: CORS preflight response
+  /feedback/history:
+    get:
+      summary: Get user feedback history
+      description: Retrieve feedback history for the authenticated user
+      operationId: getFeedbackHistory
+      tags:
+        - feedback
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of feedback items to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Feedback history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for feedback history
+      operationId: getFeedbackHistoryOptions
+      tags:
+        - feedback
+      responses:
+        '200':
+          description: CORS preflight response
+  /feedback/stats:
+    get:
+      summary: Get feedback statistics
+      description: Retrieve aggregated feedback statistics (admin only)
+      operationId: getFeedbackStats
+      tags:
+        - feedback
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Feedback statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackStatsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for feedback stats
+      operationId: getFeedbackStatsOptions
+      tags:
+        - feedback
+      responses:
+        '200':
+          description: CORS preflight response
+  /feedback/category/{category}:
+    get:
+      summary: Get feedback by category
+      description: Retrieve feedback filtered by category
+      operationId: getFeedbackByCategory
+      tags:
+        - feedback
+      parameters:
+        - name: category
+          in: path
+          required: true
+          description: The feedback category to filter by
+          schema:
+            $ref: '#/components/schemas/FeedbackCategory'
+        - name: limit
+          in: query
+          description: Maximum number of feedback items to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Feedback retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackListResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for feedback by category
+      operationId: getFeedbackByCategoryOptions
+      tags:
+        - feedback
+      responses:
+        '200':
+          description: CORS preflight response
+  /feedback/health:
+    get:
+      summary: Feedback service health check
+      description: Check if the feedback service is healthy
+      operationId: feedbackHealthCheck
+      tags:
+        - feedback
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  service:
+                    type: string
+                    example: feedback
+                  timestamp:
+                    type: string
+                    example: "1640995200"
 components:
   securitySchemes:
     BearerAuth:
@@ -390,3 +586,211 @@ components:
           format: int32
         message:
           type: string
+    FeedbackCategory:
+      type: string
+      enum:
+        - bug_report
+        - feature_request
+        - general_feedback
+        - user_experience
+        - performance
+        - other
+      description: Category of feedback
+    FeedbackStatus:
+      type: string
+      enum:
+        - submitted
+        - reviewed
+        - in_progress
+        - resolved
+        - closed
+      description: Status of feedback
+    DeviceInfo:
+      type: object
+      properties:
+        userAgent:
+          type: string
+          description: User agent string
+        platform:
+          type: string
+          description: Platform information
+        screenResolution:
+          type: string
+          description: Screen resolution
+        viewport:
+          type: string
+          description: Viewport size
+        language:
+          type: string
+          description: User language
+        timezone:
+          type: string
+          description: User timezone
+    FeedbackMetadata:
+      type: object
+      properties:
+        appVersion:
+          type: string
+          description: Application version
+        currentPage:
+          type: string
+          description: Current page URL
+        sessionId:
+          type: string
+          description: Session identifier
+        referrer:
+          type: string
+          description: Referrer URL
+        userId:
+          type: string
+          description: User identifier
+    Feedback:
+      type: object
+      required:
+        - id
+        - rating
+        - feedbackText
+        - category
+        - createdAt
+        - status
+      properties:
+        id:
+          type: string
+          description: Unique feedback identifier
+        userId:
+          type: string
+          description: User identifier (if authenticated)
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: User rating (1-5 stars)
+        feedbackText:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: Feedback text content
+        category:
+          $ref: '#/components/schemas/FeedbackCategory'
+        contactEmail:
+          type: string
+          format: email
+          description: Optional contact email
+        deviceInfo:
+          $ref: '#/components/schemas/DeviceInfo'
+        createdAt:
+          type: string
+          format: date-time
+          description: Feedback creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Feedback last update timestamp
+        status:
+          $ref: '#/components/schemas/FeedbackStatus'
+        metadata:
+          $ref: '#/components/schemas/FeedbackMetadata'
+    FeedbackSubmissionRequest:
+      type: object
+      required:
+        - rating
+        - feedbackText
+        - category
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: User rating (1-5 stars)
+        feedbackText:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: Feedback text content
+        category:
+          $ref: '#/components/schemas/FeedbackCategory'
+        contactEmail:
+          type: string
+          format: email
+          description: Optional contact email
+        deviceInfo:
+          $ref: '#/components/schemas/DeviceInfo'
+        metadata:
+          $ref: '#/components/schemas/FeedbackMetadata'
+    FeedbackSubmissionResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Whether the submission was successful
+        feedbackId:
+          type: string
+          description: Unique identifier of submitted feedback
+        message:
+          type: string
+          description: Success or error message
+        error:
+          type: string
+          description: Error details if submission failed
+    FeedbackListResponse:
+      type: object
+      required:
+        - success
+        - feedback
+        - count
+      properties:
+        success:
+          type: boolean
+          description: Whether the request was successful
+        feedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feedback'
+          description: List of feedback items
+        count:
+          type: integer
+          description: Number of feedback items returned
+        error:
+          type: string
+          description: Error message if request failed
+    FeedbackStatsResponse:
+      type: object
+      required:
+        - success
+        - totalFeedback
+        - averageRating
+        - categoryBreakdown
+        - statusBreakdown
+        - recentFeedback
+      properties:
+        success:
+          type: boolean
+          description: Whether the request was successful
+        totalFeedback:
+          type: integer
+          description: Total number of feedback items
+        averageRating:
+          type: number
+          format: float
+          description: Average rating across all feedback
+        categoryBreakdown:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Count of feedback by category
+        statusBreakdown:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Count of feedback by status
+        recentFeedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feedback'
+          description: Most recent feedback items
+        error:
+          type: string
+          description: Error message if request failed
