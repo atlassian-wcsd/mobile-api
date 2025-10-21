@@ -124,6 +124,124 @@ paths:
                     type: boolean
                   message:
                     type: string
+  /feedback/submit:
+    post:
+      summary: Submit user feedback
+      description: Submit feedback about the application
+      operationId: submitFeedback
+      tags:
+        - feedback
+      security:
+        - BearerAuth: []
+        - {}  # Allow anonymous feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '200':
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /feedback/history:
+    get:
+      summary: Get feedback history
+      description: Retrieve feedback history for authenticated user
+      operationId: getFeedbackHistory
+      tags:
+        - feedback
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of feedback entries to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Feedback history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  feedbacks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Feedback'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /feedback/{id}:
+    get:
+      summary: Get feedback status
+      description: Retrieve feedback status by ID
+      operationId: getFeedbackStatus
+      tags:
+        - feedback
+      security:
+        - BearerAuth: []
+        - {}  # Allow anonymous access with feedback ID
+      parameters:
+        - name: id
+          in: path
+          description: Feedback ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Feedback status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  feedback:
+                    $ref: '#/components/schemas/Feedback'
+        '404':
+          description: Feedback not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized
           content:
@@ -361,6 +479,182 @@ components:
         error:
           type: string
           description: Error message
+    
+    FeedbackRequest:
+      type: object
+      required:
+        - type
+        - category
+        - subject
+        - message
+      properties:
+        type:
+          type: string
+          enum:
+            - bug_report
+            - feature_request
+            - general_feedback
+            - support_request
+            - compliment
+            - complaint
+        category:
+          type: string
+          enum:
+            - user_interface
+            - performance
+            - authentication
+            - signature_functionality
+            - apple_login
+            - general
+            - other
+        subject:
+          type: string
+          minLength: 5
+          maxLength: 100
+        message:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        email:
+          type: string
+          format: email
+        metadata:
+          type: object
+          properties:
+            currentPage:
+              type: string
+            sessionId:
+              type: string
+            errorLogs:
+              type: array
+              items:
+                type: string
+            attachments:
+              type: array
+              items:
+                type: string
+            reproductionSteps:
+              type: array
+              items:
+                type: string
+    
+    FeedbackResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+        feedbackId:
+          type: string
+          format: uuid
+        message:
+          type: string
+        error:
+          type: string
+    
+    Feedback:
+      type: object
+      required:
+        - id
+        - type
+        - category
+        - subject
+        - message
+        - deviceInfo
+        - appVersion
+        - createdAt
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        email:
+          type: string
+          format: email
+        type:
+          type: string
+          enum:
+            - bug_report
+            - feature_request
+            - general_feedback
+            - support_request
+            - compliment
+            - complaint
+        category:
+          type: string
+          enum:
+            - user_interface
+            - performance
+            - authentication
+            - signature_functionality
+            - apple_login
+            - general
+            - other
+        subject:
+          type: string
+        message:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        deviceInfo:
+          type: object
+          properties:
+            userAgent:
+              type: string
+            platform:
+              type: string
+            screenResolution:
+              type: string
+            browserName:
+              type: string
+            browserVersion:
+              type: string
+            isMobile:
+              type: boolean
+            isTablet:
+              type: boolean
+        appVersion:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+            - submitted
+            - acknowledged
+            - in_progress
+            - resolved
+            - closed
+        metadata:
+          type: object
+          properties:
+            currentPage:
+              type: string
+            sessionId:
+              type: string
+            errorLogs:
+              type: array
+              items:
+                type: string
+            attachments:
+              type: array
+              items:
+                type: string
+            reproductionSteps:
+              type: array
+              items:
+                type: string
     Pet:
       type: object
       required:

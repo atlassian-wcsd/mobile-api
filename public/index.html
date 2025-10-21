@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Signature application with Apple Login authentication and user feedback system"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Apple ID SDK -->
+    <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://appleid.cdn-apple.com">
+    <link rel="preconnect" href="https://api.yourapp.com">
+    
+    <title>Signature App - Digital Signatures with Apple Login</title>
+    
+    <style>
+      /* Critical CSS for initial load */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #f5f5f5;
+      }
+      
+      /* Loading spinner */
+      .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        flex-direction: column;
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .loading-text {
+        color: #666;
+        font-size: 16px;
+      }
+      
+      /* Hide loading when React app loads */
+      #root:not(:empty) + .loading-container {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>
+      <div style="padding: 40px; text-align: center; font-family: Arial, sans-serif;">
+        <h1>JavaScript Required</h1>
+        <p>This application requires JavaScript to run. Please enable JavaScript in your browser and refresh the page.</p>
+      </div>
+    </noscript>
+    
+    <!-- React app root -->
+    <div id="root"></div>
+    
+    <!-- Loading fallback -->
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading Signature App...</div>
+    </div>
+    
+    <!-- Environment configuration -->
+    <script>
+      // Set up environment variables for the app
+      window.ENV = {
+        API_BASE_URL: '%REACT_APP_API_BASE_URL%' || 'https://api.yourapp.com',
+        APPLE_CLIENT_ID: '%REACT_APP_APPLE_CLIENT_ID%' || 'your.app.bundle.id',
+        APPLE_REDIRECT_URI: '%REACT_APP_APPLE_REDIRECT_URI%' || window.location.origin,
+        VERSION: '%REACT_APP_VERSION%' || '1.0.0'
+      };
+      
+      // Error tracking for feedback system
+      window.addEventListener('error', function(event) {
+        const errorLogs = JSON.parse(localStorage.getItem('app_error_logs') || '[]');
+        errorLogs.push({
+          message: event.message,
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        });
+        
+        // Keep only last 10 errors
+        if (errorLogs.length > 10) {
+          errorLogs.splice(0, errorLogs.length - 10);
+        }
+        
+        localStorage.setItem('app_error_logs', JSON.stringify(errorLogs));
+      });
+      
+      // Unhandled promise rejection tracking
+      window.addEventListener('unhandledrejection', function(event) {
+        const errorLogs = JSON.parse(localStorage.getItem('app_error_logs') || '[]');
+        errorLogs.push({
+          type: 'unhandledrejection',
+          reason: event.reason?.toString() || 'Unknown promise rejection',
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        });
+        
+        if (errorLogs.length > 10) {
+          errorLogs.splice(0, errorLogs.length - 10);
+        }
+        
+        localStorage.setItem('app_error_logs', JSON.stringify(errorLogs));
+      });
+      
+      // Performance monitoring
+      window.addEventListener('load', function() {
+        if ('performance' in window) {
+          const perfData = performance.getEntriesByType('navigation')[0];
+          if (perfData) {
+            localStorage.setItem('app_performance', JSON.stringify({
+              loadTime: perfData.loadEventEnd - perfData.loadEventStart,
+              domContentLoaded: perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart,
+              timestamp: new Date().toISOString()
+            }));
+          }
+        }
+      });
+    </script>
+    
+    <!-- Analytics placeholder -->
+    <!-- Add your analytics code here (Google Analytics, etc.) -->
+    
+    <!-- Apple ID configuration -->
+    <script>
+      // Configure Apple ID when the SDK loads
+      if (window.AppleID) {
+        window.AppleID.auth.init({
+          clientId: window.ENV.APPLE_CLIENT_ID,
+          scope: 'name email',
+          redirectURI: window.ENV.APPLE_REDIRECT_URI,
+          usePopup: true
+        }).catch(function(error) {
+          console.warn('Apple ID SDK initialization failed:', error);
+        });
+      }
+    </script>
+  </body>
+</html>
