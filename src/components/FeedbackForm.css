@@ -1,0 +1,409 @@
+/* Feedback Form Container */
+.feedback-form-container {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Header */
+.feedback-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 16px;
+}
+
+.feedback-form-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.feedback-form-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.feedback-form-close-btn:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.feedback-form-close-btn:focus {
+  outline: 2px solid #4CAF50;
+  outline-offset: 2px;
+}
+
+/* Messages */
+.feedback-form-message {
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.feedback-form-message--success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-left: 4px solid #4CAF50;
+}
+
+.feedback-form-message--error {
+  background-color: #ffebee;
+  color: #c62828;
+  border-left: 4px solid #f44336;
+}
+
+/* Error List */
+.feedback-form-errors {
+  background-color: #ffebee;
+  border: 1px solid #f44336;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.feedback-form-errors ul {
+  margin: 0;
+  padding: 0 0 0 20px;
+  color: #c62828;
+  font-size: 14px;
+}
+
+.feedback-form-errors li {
+  margin: 4px 0;
+}
+
+/* Form */
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Form Field */
+.feedback-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Label */
+.feedback-form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.required {
+  color: #f44336;
+  margin-left: 2px;
+}
+
+.optional {
+  color: #999;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+/* Rating */
+.feedback-form-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedback-form-star {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #d0d0d0;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s, transform 0.1s;
+}
+
+.feedback-form-star:hover {
+  color: #ffa500;
+  transform: scale(1.1);
+}
+
+.feedback-form-star.active {
+  color: #ffa500;
+}
+
+.feedback-form-star:focus {
+  outline: 2px solid #4CAF50;
+  border-radius: 2px;
+}
+
+.feedback-form-rating-text {
+  font-size: 14px;
+  color: #666;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+/* Input Fields */
+.feedback-form-input,
+.feedback-form-textarea,
+.feedback-form-select {
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.feedback-form-input:focus,
+.feedback-form-textarea:focus,
+.feedback-form-select:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.feedback-form-input:hover,
+.feedback-form-textarea:hover,
+.feedback-form-select:hover {
+  border-color: #999;
+}
+
+.feedback-form-textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* Select */
+.feedback-form-select {
+  cursor: pointer;
+}
+
+/* Help Text */
+.feedback-form-help-text {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+/* Character Count */
+.feedback-form-character-count {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #999;
+}
+
+.feedback-form-character-progress {
+  width: 100%;
+  height: 4px;
+  background-color: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.feedback-form-character-progress-bar {
+  height: 100%;
+  transition: width 0.2s, background-color 0.2s;
+}
+
+/* Action Buttons */
+.feedback-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.feedback-form-button {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.feedback-form-button:focus {
+  outline: 2px solid #4CAF50;
+  outline-offset: 2px;
+}
+
+.feedback-form-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.feedback-form-button--primary {
+  background-color: #4CAF50;
+  color: #ffffff;
+}
+
+.feedback-form-button--primary:hover:not(:disabled) {
+  background-color: #45a049;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-form-button--primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.feedback-form-button--secondary {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #d0d0d0;
+}
+
+.feedback-form-button--secondary:hover:not(:disabled) {
+  background-color: #efefef;
+}
+
+.feedback-form-button--secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Privacy Notice */
+.feedback-form-privacy-notice {
+  font-size: 12px;
+  color: #999;
+  margin-top: 12px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .feedback-form-container {
+    padding: 16px;
+  }
+
+  .feedback-form-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .feedback-form-header h2 {
+    font-size: 20px;
+  }
+
+  .feedback-form-button {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .feedback-form-textarea {
+    min-height: 100px;
+  }
+
+  .feedback-form-star {
+    font-size: 28px;
+  }
+
+  .feedback-form-actions {
+    flex-direction: column;
+  }
+
+  .feedback-form-button {
+    flex: auto;
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .feedback-form-input,
+  .feedback-form-textarea,
+  .feedback-form-select,
+  .feedback-form-button,
+  .feedback-form-star {
+    transition: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .feedback-form-container {
+    background: #1e1e1e;
+    color: #e0e0e0;
+  }
+
+  .feedback-form-header {
+    border-bottom-color: #333;
+  }
+
+  .feedback-form-header h2 {
+    color: #e0e0e0;
+  }
+
+  .feedback-form-close-btn {
+    color: #999;
+  }
+
+  .feedback-form-close-btn:hover {
+    background-color: #333;
+    color: #e0e0e0;
+  }
+
+  .feedback-form-label,
+  .feedback-form-button--secondary {
+    color: #e0e0e0;
+  }
+
+  .feedback-form-input,
+  .feedback-form-textarea,
+  .feedback-form-select {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border-color: #444;
+  }
+
+  .feedback-form-input:hover,
+  .feedback-form-textarea:hover,
+  .feedback-form-select:hover {
+    border-color: #666;
+  }
+
+  .feedback-form-input:focus,
+  .feedback-form-textarea:focus,
+  .feedback-form-select:focus {
+    border-color: #4CAF50;
+  }
+
+  .feedback-form-button--secondary {
+    background-color: #333;
+    border-color: #555;
+  }
+
+  .feedback-form-button--secondary:hover:not(:disabled) {
+    background-color: #444;
+  }
+
+  .feedback-form-privacy-notice {
+    background-color: #2a2a2a;
+    color: #999;
+  }
+}

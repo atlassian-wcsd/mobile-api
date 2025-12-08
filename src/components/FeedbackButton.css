@@ -1,0 +1,170 @@
+/* Floating Feedback Button */
+.feedback-button {
+  position: fixed;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 999;
+  font-size: 24px;
+}
+
+/* Position variants */
+.feedback-button--bottom-right {
+  bottom: 24px;
+  right: 24px;
+}
+
+.feedback-button--bottom-left {
+  bottom: 24px;
+  left: 24px;
+}
+
+.feedback-button--top-right {
+  top: 24px;
+  right: 24px;
+}
+
+.feedback-button--top-left {
+  top: 24px;
+  left: 24px;
+}
+
+/* Hover state */
+.feedback-button:hover {
+  background-color: #45a049;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+/* Active/Pressed state */
+.feedback-button:active {
+  transform: scale(0.95);
+}
+
+/* Focus state for accessibility */
+.feedback-button:focus {
+  outline: 2px solid #2e7d32;
+  outline-offset: 2px;
+}
+
+/* SVG icon styling */
+.feedback-button svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+}
+
+/* Modal Overlay */
+.feedback-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Modal Content */
+.feedback-modal-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .feedback-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .feedback-button--bottom-right,
+  .feedback-button--bottom-left,
+  .feedback-button--top-right,
+  .feedback-button--top-left {
+    bottom: 16px;
+    right: 16px;
+    top: auto;
+    left: auto;
+  }
+
+  .feedback-modal-overlay {
+    padding: 0;
+  }
+
+  .feedback-modal-content {
+    border-radius: 0;
+    max-height: 100vh;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .feedback-button {
+    background-color: #4CAF50;
+    color: #ffffff;
+  }
+
+  .feedback-button:hover {
+    background-color: #45a049;
+  }
+
+  .feedback-modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+
+  .feedback-modal-content {
+    background-color: #1e1e1e;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .feedback-button,
+  .feedback-modal-overlay,
+  .feedback-modal-content {
+    animation: none;
+    transition: none;
+  }
+}
