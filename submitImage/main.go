@@ -22,6 +22,7 @@ func init() {
 type Router struct {
 	imageDependency *opendevopslambda.Dependency
 	appleAuthHandler *opendevopslambda.AppleAuthHandler
+	feedbackHandler *opendevopslambda.FeedbackHandler
 }
 
 // NewRouter creates a new router with all handlers
@@ -39,9 +40,12 @@ func NewRouter() (*Router, error) {
 		// Continue without Apple auth if configuration is missing
 	}
 
+	feedbackHandler := opendevopslambda.NewFeedbackHandler(imageDep.DepDynamoDB)
+
 	return &Router{
 		imageDependency: imageDep,
 		appleAuthHandler: appleHandler,
+		feedbackHandler: feedbackHandler,
 	}, nil
 }
 
@@ -68,9 +72,36 @@ func (r *Router) Handler(ctx context.Context, request events.APIGatewayProxyRequ
 		}
 	}
 
+	// Feedback and Metrics routes
+	switch {
+	case path == "/feedback" && method == "POST":
+		return r.feedbackHandler.HandleSubmitFeedback(ctx, request)
+	case path == "/feedback" && method == "GET":
+		return r.feedbackHandler.HandleGetFeedback(ctx, request)
+	case path == "/metrics/track" && method == "POST":
+		return r.feedbackHandler.HandleTrackMetric(ctx, request)
+	case (path == "/feedback" || path == "/metrics/track") && method == "OPTIONS":
+		return r.handleOptions(ctx, request)
+	}
+
 	// Default to image submission handler for backward compatibility
 	// This handles the original image submission functionality
 	return r.imageDependency.Handler(ctx, request)
+}
+
+// handleOptions handles CORS preflight requests
+func (r *Router) handleOptions(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+			"Access-Control-Allow-Headers": "Content-Type, Authorization",
+			"Access-Control-Max-Age":       "86400",
+		},
+		Body:            "",
+		IsBase64Encoded: false,
+	}, nil
 }
 
 func main() {

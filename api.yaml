@@ -168,6 +168,138 @@ paths:
       responses:
         '200':
           description: CORS preflight response
+  /feedback:
+    post:
+      summary: Submit user feedback
+      description: Allows users to submit feedback, bug reports, feature requests, or improvements
+      operationId: submitFeedback
+      tags:
+        - feedback
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackSubmitRequest'
+      responses:
+        '200':
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackSubmitResponse'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: Get user feedback history
+      description: Retrieves the authenticated user's submitted feedback
+      operationId: getFeedback
+      tags:
+        - feedback
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Feedback retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  feedback:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Feedback'
+                  count:
+                    type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for feedback endpoints
+      operationId: feedbackOptions
+      tags:
+        - feedback
+      responses:
+        '200':
+          description: CORS preflight response
+  /metrics/track:
+    post:
+      summary: Track user metric/event
+      description: Records user events, actions, and analytics metrics
+      operationId: trackMetric
+      tags:
+        - metrics
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricTrackRequest'
+      responses:
+        '200':
+          description: Metric tracked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricTrackResponse'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      summary: CORS preflight for metrics endpoints
+      operationId: metricsOptions
+      tags:
+        - metrics
+      responses:
+        '200':
+          description: CORS preflight response
   /pets:
     get:
       summary: List all pets
@@ -361,6 +493,199 @@ components:
         error:
           type: string
           description: Error message
+    Feedback:
+      type: object
+      required:
+        - id
+        - userId
+        - feedbackType
+        - title
+        - message
+        - category
+        - createdAt
+        - status
+        - allowContact
+      properties:
+        id:
+          type: string
+          description: Unique feedback identifier
+        userId:
+          type: string
+          description: User ID who submitted the feedback
+        feedbackType:
+          type: string
+          enum: [bug, feature, improvement, general]
+          description: Type of feedback
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Optional rating (1-5 stars)
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Feedback title/subject
+        message:
+          type: string
+          minLength: 10
+          maxLength: 5000
+          description: Detailed feedback message
+        category:
+          type: string
+          description: Category or feature area
+        pageContext:
+          type: string
+          description: Page/screen where feedback was submitted
+        userAgent:
+          type: string
+          description: User agent information
+        deviceInfo:
+          type: object
+          properties:
+            platform:
+              type: string
+            browser:
+              type: string
+            screenResolution:
+              type: string
+            isMobile:
+              type: boolean
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when feedback was submitted
+        status:
+          type: string
+          enum: [pending, reviewed, resolved, closed]
+          description: Status of the feedback
+        email:
+          type: string
+          format: email
+          description: Optional email for follow-up
+        allowContact:
+          type: boolean
+          description: Whether user allows follow-up contact
+        attachmentIds:
+          type: array
+          items:
+            type: string
+          description: Optional attachment IDs
+        adminNotes:
+          type: string
+          description: Internal admin notes
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last updated timestamp
+    FeedbackSubmitRequest:
+      type: object
+      required:
+        - feedbackType
+        - title
+        - message
+        - category
+        - allowContact
+      properties:
+        feedbackType:
+          type: string
+          enum: [bug, feature, improvement, general]
+          description: Type of feedback
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Optional rating (1-5 stars)
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Feedback title/subject
+        message:
+          type: string
+          minLength: 10
+          maxLength: 5000
+          description: Detailed feedback message
+        category:
+          type: string
+          description: Category or feature area
+        pageContext:
+          type: string
+          description: Page/screen where feedback was submitted
+        email:
+          type: string
+          format: email
+          description: Optional email for follow-up
+        allowContact:
+          type: boolean
+          description: Whether user allows follow-up contact
+        attachmentIds:
+          type: array
+          items:
+            type: string
+          description: Optional attachment IDs
+    FeedbackSubmitResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Whether submission was successful
+        feedbackId:
+          type: string
+          description: ID of submitted feedback
+        message:
+          type: string
+          description: Success or error message
+        error:
+          type: string
+          description: Error details if submission failed
+    MetricTrackRequest:
+      type: object
+      required:
+        - eventType
+        - eventName
+      properties:
+        eventType:
+          type: string
+          description: Type of event (e.g., action, navigation, timing, error)
+        eventName:
+          type: string
+          description: Name of the event
+        properties:
+          type: object
+          additionalProperties: true
+          description: Additional event properties
+        sessionId:
+          type: string
+          description: Session ID to group related events
+        page:
+          type: string
+          description: Page/screen where event occurred
+        duration:
+          type: integer
+          format: int64
+          description: Duration in milliseconds for timing events
+    MetricTrackResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Whether tracking was successful
+        metricId:
+          type: string
+          description: ID of tracked metric
+        message:
+          type: string
+          description: Success or error message
+        error:
+          type: string
+          description: Error details if tracking failed
     Pet:
       type: object
       required:
