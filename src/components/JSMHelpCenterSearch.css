@@ -1,0 +1,328 @@
+/* JSM Help Center Search Component Styles */
+/* Fixes for Japanese text overlap issues (MOBL-2172) */
+
+.jsm-help-search-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.jsm-help-search-form {
+  position: relative;
+  width: 100%;
+}
+
+.jsm-help-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Ensure proper stacking context for Japanese IME */
+  z-index: 1;
+}
+
+.jsm-help-search-input-wrapper.focused {
+  border-color: #0052cc;
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+  /* Increase z-index when focused to prevent overlap */
+  z-index: 10;
+}
+
+.jsm-help-search-input {
+  flex: 1;
+  padding: 12px 16px 12px 48px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans CJK JP', 'Noto Sans', 'Ubuntu', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  background: transparent;
+  color: #333;
+  
+  /* CRITICAL FIXES FOR JAPANESE TEXT OVERLAP ISSUES */
+  
+  /* Proper line height to prevent character overlap */
+  line-height: 1.6;
+  
+  /* Ensure consistent character spacing */
+  letter-spacing: 0.02em;
+  word-spacing: normal;
+  
+  /* Optimize text rendering for CJK characters */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Prevent text overflow and ensure proper spacing */
+  overflow: visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  /* IME composition styling - critical for Japanese input */
+  ime-mode: auto;
+  -webkit-ime-mode: auto;
+  
+  /* Ensure IME composition window doesn't interfere */
+  position: relative;
+  z-index: 1;
+  
+  /* Mobile optimizations */
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Ensure consistent height across different languages */
+  min-height: 24px;
+  max-height: 48px;
+  box-sizing: border-box;
+  
+  /* Prevent auto-zoom on mobile devices */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  
+  /* Ensure proper vertical alignment for CJK characters */
+  vertical-align: baseline;
+  
+  /* Fix for Japanese character baseline alignment */
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-feature-settings: "kern" 1, "liga" 1;
+  
+  /* Prevent font fallback issues that can cause overlap */
+  font-variant-ligatures: common-ligatures;
+  font-variant-numeric: tabular-nums;
+}
+
+/* IME composition state styling */
+.jsm-help-search-input:focus {
+  /* Ensure IME composition area is properly positioned */
+  position: relative;
+  z-index: 2;
+}
+
+/* Composition text styling (for browsers that support it) */
+.jsm-help-search-input::selection {
+  background-color: rgba(0, 82, 204, 0.2);
+}
+
+.jsm-help-search-input::-moz-selection {
+  background-color: rgba(0, 82, 204, 0.2);
+}
+
+.jsm-help-search-input::placeholder {
+  color: #666;
+  opacity: 1;
+  /* Ensure placeholder doesn't interfere with Japanese input */
+  font-style: normal;
+  font-weight: normal;
+  /* Match the same line-height to prevent layout shift */
+  line-height: 1.6;
+}
+
+.jsm-help-search-input:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Search icon positioning */
+.jsm-help-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  pointer-events: none;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+}
+
+.jsm-help-search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #666;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  z-index: 2;
+}
+
+.jsm-help-search-clear:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.jsm-help-search-clear:focus {
+  outline: 2px solid #0052cc;
+  outline-offset: 2px;
+}
+
+.jsm-help-search-clear-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .jsm-help-search-input {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 14px 16px 14px 48px;
+    /* Increase line-height slightly on mobile for better touch targets */
+    line-height: 1.7;
+  }
+  
+  .jsm-help-search-input-wrapper {
+    border-radius: 12px;
+    /* Ensure proper touch target size */
+    min-height: 48px;
+  }
+  
+  /* Adjust icon sizes for mobile */
+  .jsm-help-search-icon {
+    left: 14px;
+  }
+  
+  .jsm-help-search-clear {
+    right: 10px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .jsm-help-search-input {
+    padding: 13px 16px 13px 48px;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .jsm-help-search-input {
+    -webkit-font-smoothing: subpixel-antialiased;
+    /* Ensure crisp text rendering on retina displays */
+    text-rendering: geometricPrecision;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .jsm-help-search-input-wrapper {
+    background: #1a1a1a;
+    border-color: #444;
+  }
+  
+  .jsm-help-search-input {
+    color: #fff;
+  }
+  
+  .jsm-help-search-input::placeholder {
+    color: #999;
+  }
+  
+  .jsm-help-search-input-wrapper.focused {
+    border-color: #4c9aff;
+  }
+  
+  .jsm-help-search-clear:hover {
+    background-color: #333;
+    color: #fff;
+  }
+}
+
+/* RTL language support */
+[dir="rtl"] .jsm-help-search-input {
+  padding: 12px 48px 12px 16px;
+}
+
+[dir="rtl"] .jsm-help-search-icon {
+  left: auto;
+  right: 16px;
+}
+
+[dir="rtl"] .jsm-help-search-clear {
+  right: auto;
+  left: 12px;
+}
+
+/* Japanese-specific font optimizations */
+:lang(ja) .jsm-help-search-input {
+  /* Use Japanese-optimized fonts */
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans CJK JP', 'Yu Gothic', 'Meiryo', sans-serif;
+  
+  /* Optimize for Japanese character rendering */
+  font-feature-settings: "palt" 1, "kern" 1;
+  -webkit-font-feature-settings: "palt" 1, "kern" 1;
+  
+  /* Ensure proper spacing for Japanese characters */
+  letter-spacing: 0.05em;
+  
+  /* Slightly increase line-height for better readability */
+  line-height: 1.8;
+}
+
+/* Chinese-specific optimizations */
+:lang(zh) .jsm-help-search-input,
+:lang(zh-CN) .jsm-help-search-input,
+:lang(zh-TW) .jsm-help-search-input {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif;
+  line-height: 1.7;
+}
+
+/* Korean-specific optimizations */
+:lang(ko) .jsm-help-search-input {
+  font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans CJK KR', 'Malgun Gothic', sans-serif;
+  line-height: 1.7;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .jsm-help-search-input-wrapper {
+    transition: none;
+  }
+  
+  .jsm-help-search-clear {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .jsm-help-search-input-wrapper {
+    border-width: 3px;
+    border-color: #000;
+  }
+  
+  .jsm-help-search-input-wrapper.focused {
+    border-color: #0052cc;
+    box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.3);
+  }
+  
+  .jsm-help-search-input {
+    color: #000;
+  }
+  
+  .jsm-help-search-input::placeholder {
+    color: #666;
+  }
+}
+
+/* Print styles */
+@media print {
+  .jsm-help-search-container {
+    display: none;
+  }
+}
