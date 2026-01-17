@@ -93,6 +93,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /health:
+    get:
+      summary: API health check endpoint
+      operationId: healthCheck
+      tags:
+        - health
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheckResponse"
+        '503':
+          description: API is degraded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheckResponse"
 components:
   schemas:
     Pet:
@@ -124,3 +143,55 @@ components:
           format: int32
         message:
           type: string
+    HealthCheckResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - version
+        - services
+        - performance
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded]
+          description: Overall API health status
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the health check
+        version:
+          type: string
+          description: API version
+        services:
+          type: object
+          properties:
+            s3:
+              $ref: "#/components/schemas/ServiceStatus"
+            dynamodb:
+              $ref: "#/components/schemas/ServiceStatus"
+        performance:
+          type: object
+          properties:
+            averageResponseTimeMs:
+              type: number
+              description: Average response time in milliseconds
+            uptime:
+              type: string
+              description: Service uptime status
+    ServiceStatus:
+      type: object
+      required:
+        - status
+        - responseTimeMs
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Service health status
+        responseTimeMs:
+          type: number
+          description: Service response time in milliseconds
+        message:
+          type: string
+          description: Optional error or status message
