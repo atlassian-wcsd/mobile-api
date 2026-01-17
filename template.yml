@@ -32,6 +32,30 @@ Resources:
         service_name: open_devops_image_rec
         resource_owner: wmarusiak
 
+  HealthCheckFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: healthcheck/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Tracing: Active
+      Policies:
+        - AmazonDynamoDBReadOnlyAccess
+        - AmazonS3ReadOnlyAccess
+      Events:
+        HealthCheck:
+          Type: Api
+          Properties:
+            Path: /health
+            Method: GET
+      Tags:
+        Name: healthCheck
+        business_unit: agile_devops_pmm
+        service_name: open_devops_image_rec
+        resource_owner: wmarusiak
+
 Outputs:
   SubmitImageAPI:
     Description: "API Gateway endpoint URL for Prod environment for Submit Image Function"
@@ -47,3 +71,12 @@ Outputs:
     Value: !Ref SubmitImageFunction
     Export:
       Name: SubmitImageFunctionName
+  HealthCheckAPI:
+    Description: "API Gateway endpoint URL for Prod environment for Health Check Function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/health"
+  HealthCheckFunction:
+    Description: "Health Check Lambda Function ARN"
+    Value: !GetAtt HealthCheckFunction.Arn
+  HealthCheckFunctionIamRole:
+    Description: "Implicit IAM Role created for Health Check function"
+    Value: !GetAtt HealthCheckFunctionRole.Arn
