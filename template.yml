@@ -26,6 +26,12 @@ Resources:
           Properties:
             Path: /bootstrap
             Method: GET
+        # Signature export endpoint
+        ExportSignature:
+          Type: Api
+          Properties:
+            Path: /export
+            Method: POST
       Tags:
         Name: submitImage
         business_unit: agile_devops_pmm
