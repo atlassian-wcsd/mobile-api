@@ -97,6 +97,13 @@ func isValidExtension(urlVal string) bool {
 }
 
 func (d *Dependency) Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	// Route requests based on path
+	path := request.Path
+	if path == "/export" || strings.HasSuffix(path, "/export") {
+		return d.ExportSignatureHandler(ctx, request)
+	}
+
+	// Default to bootstrap/image submission handler
 	lc, _ := lambdacontext.FromContext(ctx)
 	region := strings.Split(lc.InvokedFunctionArn, ":")[3]
   aws_account_id := strings.Split(lc.InvokedFunctionArn, ":")[4]
@@ -106,27 +113,27 @@ func (d *Dependency) Handler(ctx context.Context, request events.APIGatewayProxy
 		urlVal, err := url.QueryUnescape(urlParam)
 		if err != nil {
 			return events.APIGatewayProxyResponse{StatusCode: 500,
-				Body: `{"ImageId":"error"}`,
+				Body: `{\"ImageId\":\"error\"}`,
 				IsBase64Encoded: false,
 			}, err
 		}
 
 		if !isValidExtension(urlVal) {
 			return events.APIGatewayProxyResponse{StatusCode: 500,
-				Body: `{"ImageId":"error"}`,
+				Body: `{\"ImageId\":\"error\"}`,
 				IsBase64Encoded: false,
 			}, errors.New("file extension %s is not valid")
 		}
 
 		processString, processErr := d.processRequest(urlVal, region, aws_account_id)
 		return events.APIGatewayProxyResponse{StatusCode: 200,
-			Body: fmt.Sprintf(`"ImageId":"%s"`, processString),
+			Body: fmt.Sprintf(`\"ImageId\":\"%s\"`, processString),
 			IsBase64Encoded: false,
 		}, processErr
 	}
 
 	return events.APIGatewayProxyResponse{StatusCode: 500,
-		Body: `{"ImageId":"error"}`,
+		Body: `{\"ImageId\":\"error\"}`,
 		IsBase64Encoded: false,
 	}, errors.New("url parameter not found")
 }

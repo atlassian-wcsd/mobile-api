@@ -10,4 +10,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/gorilla/mux v1.8.0
 	golang.org/x/text v0.3.3 // indirect
+	image/png v0.0.0
+	github.com/jung-kurt/gofpdf v1.16.2
 )
