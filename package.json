@@ -14,10 +14,13 @@
     "react-dom": "16.0.1",
     "signature_pad": "^4.0.0",
     "node-forge": "0.10.0",
-    "axios": "0.19.2",
+    "axios": "1.7.9",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/node": "^16.0.0"
+  },
+  "overrides": {
+    "qs": ">=6.13.0"
   },
   "devDependencies": {
     "typescript": "^4.5.0",
