@@ -93,6 +93,186 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /notifications:
+    get:
+      summary: List all notifications for a user
+      operationId: listNotifications
+      tags:
+        - notifications
+      parameters:
+        - name: userId
+          in: query
+          description: The id of the user to retrieve notifications for
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+            type: integer
+            maximum: 100
+            format: int32
+      responses:
+        '200':
+          description: A paged array of notifications
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notifications"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create a notification
+      operationId: createNotification
+      tags:
+        - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationInput'
+        required: true
+      responses:
+        '201':
+          description: Null response
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /notifications/{notificationId}:
+    get:
+      summary: Info for a specific notification
+      operationId: showNotificationById
+      tags:
+        - notifications
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: The id of the notification to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete a specific notification
+      operationId: deleteNotification
+      tags:
+        - notifications
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: The id of the notification to delete
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Null response
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /notifications/{notificationId}/read:
+    put:
+      summary: Mark a notification as read
+      operationId: markNotificationAsRead
+      tags:
+        - notifications
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: The id of the notification to mark as read
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /notifications/{notificationId}/unread:
+    put:
+      summary: Mark a notification as unread
+      operationId: markNotificationAsUnread
+      tags:
+        - notifications
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: The id of the notification to mark as unread
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /notifications/read-all:
+    put:
+      summary: Mark all notifications as read for a user
+      operationId: markAllNotificationsAsRead
+      tags:
+        - notifications
+      parameters:
+        - name: userId
+          in: query
+          description: The id of the user to mark all notifications as read for
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Null response
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
     Pet:
@@ -113,6 +293,121 @@ components:
       maxItems: 100
       items:
         $ref: "#/components/schemas/Pet"
+    Notification:
+      type: object
+      required:
+        - id
+        - userId
+        - title
+        - message
+        - type
+        - priority
+        - isRead
+        - createdAt
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+          enum:
+            - FLIGHT_STATUS
+            - GATE_CHANGE
+            - BOOKING_UPDATE
+            - DELAY
+            - CANCELLATION
+            - GENERAL
+        priority:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+            - URGENT
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+        metadata:
+          type: object
+          properties:
+            flightNumber:
+              type: string
+            previousStatus:
+              type: string
+            newStatus:
+              type: string
+            gate:
+              type: string
+            departureTime:
+              type: string
+            arrivalTime:
+              type: string
+            bookingReference:
+              type: string
+    NotificationInput:
+      type: object
+      required:
+        - userId
+        - title
+        - message
+        - type
+        - priority
+      properties:
+        userId:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+          enum:
+            - FLIGHT_STATUS
+            - GATE_CHANGE
+            - BOOKING_UPDATE
+            - DELAY
+            - CANCELLATION
+            - GENERAL
+        priority:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+            - URGENT
+        metadata:
+          type: object
+          properties:
+            flightNumber:
+              type: string
+            previousStatus:
+              type: string
+            newStatus:
+              type: string
+            gate:
+              type: string
+            departureTime:
+              type: string
+            arrivalTime:
+              type: string
+            bookingReference:
+              type: string
+    Notifications:
+      type: array
+      maxItems: 100
+      items:
+        $ref: "#/components/schemas/Notification"
     Error:
       type: object
       required:

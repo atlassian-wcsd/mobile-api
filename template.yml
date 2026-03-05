@@ -15,6 +15,9 @@ Resources:
       Handler: bootstrap
       Runtime: provided.al2
       Tracing: Active
+      Environment:
+        Variables:
+          NOTIFICATIONS_TABLE: !Ref NotificationsTable
       Policies:
         - AmazonDynamoDBFullAccess
         - AmazonS3FullAccess
@@ -26,11 +29,73 @@ Resources:
           Properties:
             Path: /bootstrap
             Method: GET
+        # Notification API endpoints
+        GetNotifications:
+          Type: Api
+          Properties:
+            Path: /notifications
+            Method: GET
+        CreateNotification:
+          Type: Api
+          Properties:
+            Path: /notifications
+            Method: POST
+        GetNotification:
+          Type: Api
+          Properties:
+            Path: /notifications/{notificationId}
+            Method: GET
+        DeleteNotification:
+          Type: Api
+          Properties:
+            Path: /notifications/{notificationId}
+            Method: DELETE
+        MarkNotificationRead:
+          Type: Api
+          Properties:
+            Path: /notifications/{notificationId}/read
+            Method: PUT
+        MarkNotificationUnread:
+          Type: Api
+          Properties:
+            Path: /notifications/{notificationId}/unread
+            Method: PUT
+        MarkAllNotificationsRead:
+          Type: Api
+          Properties:
+            Path: /notifications/read-all
+            Method: PUT
       Tags:
         Name: submitImage
         business_unit: agile_devops_pmm
         service_name: open_devops_image_rec
         resource_owner: wmarusiak
+
+  NotificationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: isRead
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: IsReadIndex
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: isRead
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
 
 Outputs:
   SubmitImageAPI:
@@ -47,3 +112,6 @@ Outputs:
     Value: !Ref SubmitImageFunction
     Export:
       Name: SubmitImageFunctionName
+  NotificationsTableArn:
+    Description: "Notifications DynamoDB Table ARN"
+    Value: !GetAtt NotificationsTable.Arn
