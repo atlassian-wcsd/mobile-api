@@ -61,6 +61,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /feedback:
+    post:
+      summary: Submit user feedback
+      operationId: submitFeedback
+      tags:
+        - feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '201':
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+        '400':
+          description: Invalid request (validation error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    options:
+      summary: CORS preflight for feedback endpoint
+      operationId: feedbackCors
+      tags:
+        - feedback
+      responses:
+        '200':
+          description: CORS preflight response
   /pets/{petId}:
     get:
       summary: Info for a specific pet
@@ -113,6 +152,59 @@ components:
       maxItems: 100
       items:
         $ref: "#/components/schemas/Pet"
+    FeedbackRequest:
+      type: object
+      required:
+        - userId
+        - category
+        - rating
+        - message
+      properties:
+        userId:
+          type: string
+          description: ID of the user submitting feedback
+        category:
+          type: string
+          enum:
+            - bug
+            - feature_request
+            - improvement
+            - general
+          description: Category of the feedback
+        rating:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 5
+          description: Star rating from 1 to 5
+        message:
+          type: string
+          maxLength: 2000
+          description: The feedback message text
+        contactEmail:
+          type: string
+          format: email
+          description: Optional contact email for follow-up
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          description: Additional metadata about the submission
+    FeedbackResponse:
+      type: object
+      properties:
+        feedbackId:
+          type: string
+          description: Unique identifier for the submitted feedback
+        status:
+          type: string
+          enum:
+            - submitted
+            - error
+          description: Status of the feedback submission
+        message:
+          type: string
+          description: Human-readable status message
     Error:
       type: object
       required:
