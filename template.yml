@@ -32,6 +32,51 @@ Resources:
         service_name: open_devops_image_rec
         resource_owner: wmarusiak
 
+  SubmitFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: submitFeedback/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Tracing: Active
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        SubmitFeedback:
+          Type: Api
+          Properties:
+            Path: /feedback
+            Method: POST
+        FeedbackCors:
+          Type: Api
+          Properties:
+            Path: /feedback
+            Method: OPTIONS
+      Tags:
+        Name: submitFeedback
+        business_unit: agile_devops_pmm
+        service_name: open_devops_feedback
+        resource_owner: wmarusiak
+
+  UserFeedbackTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: UserFeedback
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      Tags:
+        - Key: Name
+          Value: UserFeedbackTable
+        - Key: business_unit
+          Value: agile_devops_pmm
+
 Outputs:
   SubmitImageAPI:
     Description: "API Gateway endpoint URL for Prod environment for Submit Image Function"
@@ -47,3 +92,20 @@ Outputs:
     Value: !Ref SubmitImageFunction
     Export:
       Name: SubmitImageFunctionName
+  SubmitFeedbackAPI:
+    Description: "API Gateway endpoint URL for Prod environment for Submit Feedback Function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/feedback"
+  SubmitFeedbackFunction:
+    Description: "Submit Feedback Lambda Function ARN"
+    Value: !GetAtt SubmitFeedbackFunction.Arn
+  SubmitFeedbackFunctionIamRole:
+    Description: "Implicit IAM Role created for Submit Feedback function"
+    Value: !GetAtt SubmitFeedbackFunctionRole.Arn
+  SubmitFeedbackFunctionName:
+    Description: "SubmitFeedback function name"
+    Value: !Ref SubmitFeedbackFunction
+    Export:
+      Name: SubmitFeedbackFunctionName
+  UserFeedbackTableName:
+    Description: "DynamoDB table for user feedback"
+    Value: !Ref UserFeedbackTable
