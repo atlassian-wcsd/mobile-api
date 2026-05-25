@@ -34,3 +34,19 @@ npm install
 cd submitImage
 go mod download
 ```
+
+
+
+1
+
+
+
+
+2
+
+
+
+3
+
+
+4
