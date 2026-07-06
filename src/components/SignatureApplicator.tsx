@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Signature } from '../models/Signature';
-import { SignatureService } from '../services/SignatureService';
+import { SignatureReceipt, SignatureService } from '../services/SignatureService';
 
 interface SignatureApplicatorProps {
   userId: string;
@@ -18,8 +18,10 @@ export const SignatureApplicator: React.FC<SignatureApplicatorProps> = ({
   const [signatures, setSignatures] = useState<Signature[]>([]);
   const [selectedSignature, setSelectedSignature] = useState<Signature | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [receipt, setReceipt] = useState<SignatureReceipt | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const signatureService = new SignatureService();
+  const signatureService = useRef(new SignatureService()).current;
 
   // Load user's signatures
   useEffect(() => {
@@ -28,15 +30,7 @@ export const SignatureApplicator: React.FC<SignatureApplicatorProps> = ({
   }, [userId]);
 
   // Handle new signature creation
-  const handleCreateSignature = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-
-    // Clear previous drawings
-    context.clearRect(0, 0, canvas.width, canvas.height);
+  const handleCreateSignature = () => {
     setIsDrawing(true);
   };
 
@@ -61,7 +55,7 @@ export const SignatureApplicator: React.FC<SignatureApplicatorProps> = ({
   };
 
   // Handle saving the signature
-  const handleSaveSignature = () => {
+  const handleSaveSignature = async () => {
     if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
@@ -80,12 +74,19 @@ export const SignatureApplicator: React.FC<SignatureApplicatorProps> = ({
       );
 
       setSignatures([...signatures, newSignature]);
-      setIsDrawing(false);
-      
-      // Clear canvas
-      const context = canvas.getContext('2d');
-      if (context) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
+      try {
+        const submissionReceipt = await signatureService.submitSignature(imageData);
+        setReceipt(submissionReceipt);
+        setSubmitError(null);
+        setIsDrawing(false);
+
+        // Clear canvas
+        const context = canvas.getContext('2d');
+        if (context) {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      } catch {
+        setSubmitError('Signature submission failed. Please retry.');
       }
     }
   };
@@ -164,6 +165,16 @@ export const SignatureApplicator: React.FC<SignatureApplicatorProps> = ({
         </div>
       )}
 
+      {receipt && (
+        <div className="submission-confirmation">
+          Signature submitted ({receipt.signatureId})
+        </div>
+      )}
+
+      {submitError && (
+        <div className="submission-error">{submitError}</div>
+      )}
+
       <style jsx>{`
         .signature-applicator {
           display: flex;
@@ -214,6 +225,16 @@ export const SignatureApplicator: React.FC<SignatureApplicatorProps> = ({
           transform: translate(-50%, -50%);
           color: #666;
           pointer-events: none;
+        }
+
+        .submission-confirmation {
+          color: #1d7a1d;
+          font-size: 14px;
+        }
+
+        .submission-error {
+          color: #b22222;
+          font-size: 14px;
         }
 
         button {

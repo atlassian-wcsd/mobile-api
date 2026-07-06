@@ -8,6 +8,31 @@ info:
 servers:
   - url: https://api.yourapp.com/v1
 paths:
+  /submitImage:
+    post:
+      summary: Submit a signature image and return a durable receipt
+      operationId: submitSignatureImage
+      tags:
+        - signatures
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignatureSubmitRequest"
+      responses:
+        '200':
+          description: Signature was persisted and receipt was generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignatureReceipt"
+        '500':
+          description: Signature was not fully persisted (no partial receipt returned)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignatureSubmitError"
   /pets:
     get:
       summary: List all pets
@@ -123,4 +148,37 @@ components:
           type: integer
           format: int32
         message:
+          type: string
+    SignatureSubmitRequest:
+      type: object
+      required:
+        - imageData
+      properties:
+        imageData:
+          type: string
+          description: Base64 encoded signature image bytes (data URL supported)
+    SignatureReceipt:
+      type: object
+      required:
+        - signatureId
+        - s3Key
+        - submittedAt
+        - imageHash
+      properties:
+        signatureId:
+          type: string
+        s3Key:
+          type: string
+        submittedAt:
+          type: string
+          format: date-time
+        imageHash:
+          type: string
+          description: SHA-256 hash of the exact bytes stored in S3
+    SignatureSubmitError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
           type: string

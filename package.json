@@ -10,8 +10,8 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "react": "16.0.1",
-    "react-dom": "16.0.1",
+    "react": "16.14.0",
+    "react-dom": "16.14.0",
     "signature_pad": "^4.0.0",
     "node-forge": "0.10.0",
     "axios": "0.19.2",
