@@ -1,10 +1,20 @@
 import { Signature } from '../models/Signature';
+import axios from 'axios';
+
+export interface SignatureReceipt {
+  signatureId: string;
+  s3Key: string;
+  submittedAt: string;
+  imageHash: string;
+}
 
 /**
  * Service class for managing handwriting signatures
  */
 export class SignatureService {
   private signatures: Map<string, Signature> = new Map();
+  private static submittedReceipts: Map<string, SignatureReceipt> = new Map();
+  private static inFlightSubmissions: Map<string, Promise<SignatureReceipt>> = new Map();
 
   /**
    * Create a new handwriting signature
@@ -98,6 +108,36 @@ export class SignatureService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Submit a signature image to the backend and return a durable receipt.
+   * Re-submitting identical image data returns the same receipt without creating duplicates.
+   * @param imageData Base64 encoded image data to submit
+   */
+  public async submitSignature(imageData: string): Promise<SignatureReceipt> {
+    const existingReceipt = SignatureService.submittedReceipts.get(imageData);
+    if (existingReceipt) {
+      return existingReceipt;
+    }
+
+    const inFlightRequest = SignatureService.inFlightSubmissions.get(imageData);
+    if (inFlightRequest) {
+      return inFlightRequest;
+    }
+
+    const submissionRequest = axios
+      .post<SignatureReceipt>('/submitImage', { imageData })
+      .then((response) => {
+        SignatureService.submittedReceipts.set(imageData, response.data);
+        return response.data;
+      })
+      .finally(() => {
+        SignatureService.inFlightSubmissions.delete(imageData);
+      });
+
+    SignatureService.inFlightSubmissions.set(imageData, submissionRequest);
+    return submissionRequest;
   }
 
   /**
